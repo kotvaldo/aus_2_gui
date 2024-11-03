@@ -148,7 +148,7 @@ public:
     Parcela* parcela;
 
     Area(int id, GPS* gpsCoord, Nehnutelnost* nehnut = nullptr, Parcela* parc = nullptr)
-        : uid(id), gps(new GPS(*gpsCoord)), nehnutelnost(nehnut ? new Nehnutelnost(*nehnut) : nullptr), parcela(parc ? new Parcela(*parc) : nullptr) {}
+        : uid(id), gps(new GPS(*gpsCoord)), nehnutelnost(nehnut), parcela(parc) {}
 
     // Copy constructor for deep copy
     Area(const Area& other)

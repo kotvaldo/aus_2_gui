@@ -1,16 +1,17 @@
+#include "KDTree.h"
 #include "Models.h"
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <algorithm>
 
 class FileLoader {
 private:
-    std::vector<Nehnutelnost*> nehnutelnosti;
-    std::vector<Parcela*> parcely;
-     std::vector<int>& sharedUIDs;
+
+    vector<Nehnutelnost*> nehnutelnosti;
+    vector<Parcela*> parcely;
+    std::vector<int>& sharedUIDs;
 
 public:
     FileLoader(std::vector<int>& uids) : sharedUIDs(uids) {}
@@ -20,20 +21,10 @@ public:
         clearData();
     }
 
-    bool loadFromFile(const std::string& nehnutelnostiFile, const std::string& parcelyFile) {
-        clearData();
-        return loadNehnutelnosti(nehnutelnostiFile) && loadParcely(parcelyFile);
-    }
 
-    const std::vector<Nehnutelnost*>& getNehnutelnosti() const {
-        return nehnutelnosti;
-    }
 
-    const std::vector<Parcela*>& getParcely() const {
-        return parcely;
-    }
 
-private:
+
     void clearData() {
         for (auto* nehnutelnost : nehnutelnosti) {
             delete nehnutelnost;
@@ -49,7 +40,7 @@ private:
     }
 
     int getBiggerUID() const {
-        return sharedUIDs.size();  // Vracia veľkosť sharedUIDs ako nové UID
+        return sharedUIDs.size();
     }
 
     bool loadNehnutelnosti(const std::string& filename) {
@@ -86,6 +77,7 @@ private:
             return false;
         }
 
+
         std::string line;
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
@@ -105,4 +97,18 @@ private:
 
         return true;
     }
+
+
+    vector<Nehnutelnost *>& getNehnutelnosti();
+    vector<Parcela *>& getParcely();
 };
+
+inline vector<Parcela *>& FileLoader::getParcely()
+{
+    return parcely;
+}
+
+inline vector<Nehnutelnost *>& FileLoader::getNehnutelnosti()
+{
+    return nehnutelnosti;
+}

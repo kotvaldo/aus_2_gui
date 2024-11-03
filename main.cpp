@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "Tester.h"
 #include <QApplication>
 
 
