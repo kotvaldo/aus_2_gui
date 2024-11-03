@@ -1,95 +1,132 @@
-#pragma once
+#include <iostream>
 #include <vector>
-#include "KDTree.h"
-#include "Controller.h"
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <memory>
+#include "Models.h"
+#include "Parcela.h"
 
-
-template <typename KeyType, typename DataType>
-class DatabaseManager {
-protected:
-    GeneralKDTree<KeyType, DataType>* tree;
-    std::vector<DataType*> databaseRecords;
-    vector<int> uid_list;
+class Database {
+private:
+    std::vector<std::unique_ptr<Nehnutelnost>> nehnutelnosti;
+    std::vector<std::unique_ptr<Parcela>> parcely;
 
 public:
-    DatabaseManager(GeneralKDTree<KeyType, DataType>* tree) : tree(tree) {}
-
-    virtual void loadDatabaseFromFile(const std::string& filename) = 0;
-
-    virtual void fillTreeWithDatabaseRecords() = 0;
-
-    vector<DataType*> findRecords(KeyType* key) {
-        tree->find(key);
-    
-    };
-
-    virtual void insertRecord(DataType* record) = 0;
-
-    void deleteRecord(DataType* record) {
-        tree->removeNode(record);
+    // Načítanie zo súboru
+    bool loadFromFile(const std::string& nehnutelnostiFile, const std::string& parcelyFile) {
+        return loadNehnutelnosti(nehnutelnostiFile) && loadParcely(parcelyFile);
     }
 
-    void clearDatabase() {
-        tree->clear();
-
+    // Uloženie do súboru
+    bool saveToFile(const std::string& nehnutelnostiFile, const std::string& parcelyFile) {
+        return saveNehnutelnosti(nehnutelnostiFile) && saveParcely(parcelyFile);
     }
 
-    void clearTree() {
-        tree->clear();
-
+    // Pridanie nehnuteľnosti
+    void addNehnutelnost(std::unique_ptr<Nehnutelnost> nehnutelnost) {
+        nehnutelnosti.push_back(std::move(nehnutelnost));
     }
-    int getUnicateId() {
-        if (uid_list.empty()) {
-            uid_list.push_back(1);
-            return 1;
+
+    // Pridanie parcely
+    void addParcela(std::unique_ptr<Parcela> parcela) {
+        parcely.push_back(std::move(parcela));
+    }
+
+    // Získanie všetkých nehnuteľností
+    const std::vector<std::unique_ptr<Nehnutelnost>>& getNehnutelnosti() const {
+        return nehnutelnosti;
+    }
+
+    // Získanie všetkých parciel
+    const std::vector<std::unique_ptr<Parcela>>& getParcely() const {
+        return parcely;
+    }
+
+private:
+    // Načítanie nehnuteľností zo súboru
+    bool loadNehnutelnosti(const std::string& filename) {
+        std::ifstream infile(filename);
+        if (!infile) {
+            std::cerr << "Unable to open file " << filename << std::endl;
+            return false;
         }
-        uid_list.push_back(uid_list.size() + 1);
-        return uid_list.size();
-    }
 
-
-    virtual ~DatabaseManager() {
-        for (auto record : databaseRecords) {
-            delete record;
-        }
-    }
-
-protected:
-    virtual DataType* parseRecord(const std::string& line) = 0;
-};
-
-
-class NehnutelnostLoader : public DatabaseManager<GPS, Nehnutelnost> {
-public:
-    NehnutelnostLoader(GeneralKDTree<GPS, Nehnutelnost>* tree) : DatabaseManager(tree) {}
-
-    void loadDatabaseFromFile(const std::string& filename) override {
-        std::ifstream file(filename);
         std::string line;
-        while (std::getline(file, line)) {
-            Nehnutelnost* record = parseRecord(line);
-            if (record) databaseRecords.push_back(record);
+        while (std::getline(infile, line)) {
+            std::istringstream iss(line);
+            int uid, gpsX, gpsY;
+            std::string description;
+            if (!(iss >> uid >> gpsX >> gpsY >> std::ws && std::getline(iss, description))) {
+                std::cerr << "Error reading nehnutelnost from file" << std::endl;
+                return false;
+            }
+            auto gps = std::make_unique<GPS>(gpsX, gpsY);
+            auto nehnutelnost = std::make_unique<Nehnutelnost>(uid, gps.get(), description);
+            nehnutelnosti.push_back(std::move(nehnutelnost));
         }
+
+        return true;
     }
 
-    void fillTreeWithDatabaseRecords() override {
-        for (auto record : this->databaseRecords) {
-            tree->insert(record, record->gps);
+    // Načítanie parciel zo súboru
+    bool loadParcely(const std::string& filename) {
+        std::ifstream infile(filename);
+        if (!infile) {
+            std::cerr << "Unable to open file " << filename << std::endl;
+            return false;
         }
-    }
-    virtual void insertRecord(Nehnutelnost* record) {
-        tree->insert(record, record->gps);
+
+        std::string line;
+        while (std::getline(infile, line)) {
+            std::istringstream iss(line);
+            int uid, gpsX, gpsY;
+            std::string description;
+            if (!(iss >> uid >> gpsX >> gpsY >> std::ws && std::getline(iss, description))) {
+                std::cerr << "Error reading parcela from file" << std::endl;
+                return false;
+            }
+            auto gps = std::make_unique<GPS>(gpsX, gpsY);
+            auto parcela = std::make_unique<Parcela>(uid, gps.get(), description);
+            parcely.push_back(std::move(parcela));
+        }
+
+        return true;
     }
 
-protected:
-    Nehnutelnost* parseRecord(const std::string& line) override {
-        std::istringstream iss(line);
-        int id, x, y;
-        if (iss >> id >> x >> y) {
-            return new Nehnutelnost(id, new GPS(x, y));
+    // Uloženie nehnuteľností do súboru
+    bool saveNehnutelnosti(const std::string& filename) {
+        std::ofstream outfile(filename);
+        if (!outfile) {
+            std::cerr << "Unable to open file " << filename << std::endl;
+            return false;
         }
-        return nullptr;
+
+        for (const auto& nehnutelnost : nehnutelnosti) {
+            outfile << nehnutelnost->uid << " "
+                    << nehnutelnost->gps->x << " "
+                    << nehnutelnost->gps->y << " "
+                    << nehnutelnost->popis << std::endl;
+        }
+
+        return true;
+    }
+
+    // Uloženie parciel do súboru
+    bool saveParcely(const std::string& filename) {
+        std::ofstream outfile(filename);
+        if (!outfile) {
+            std::cerr << "Unable to open file " << filename << std::endl;
+            return false;
+        }
+
+        for (const auto& parcela : parcely) {
+            outfile << parcela->uid << " "
+                    << parcela->gps->x << " "
+                    << parcela->gps->y << " "
+                    << parcela->popis << std::endl;
+        }
+
+        return true;
     }
 };
