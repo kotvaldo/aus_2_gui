@@ -23,7 +23,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(AUS_2_GUI
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        Database.h KDTree.h  Models.h
+        FileLoader.h KDTree.h  Models.h
+        TreeDatabase.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET AUS_2_GUI APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

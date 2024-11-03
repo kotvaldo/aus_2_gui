@@ -14,50 +14,27 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QListWidget" name="list_nehnutelnosti">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>100</y>
-      <width>321</width>
-      <height>191</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QListWidget" name="list_parcely">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>100</y>
+      <x>70</x>
+      <y>130</y>
       <width>311</width>
       <height>191</height>
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="button_load_nehnutelnosti">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>50</y>
-      <width>141</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Načítaj nehnuteľnosti</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>520</x>
-      <y>50</y>
+      <x>130</x>
+      <y>80</y>
       <width>151</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Načítaj Parcely</string>
+     <string>Text</string>
     </property>
    </widget>
   </widget>

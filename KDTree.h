@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "Models.h"
 #include <functional>
 #include <stack>
 #include <stack>
@@ -10,9 +9,9 @@
 #include <unordered_set>
 
 #define RESET   "\033[0m"
-#define GREEN   "\033[32m"  // Zelená
-#define RED     "\033[31m"  // Èervená
-#define UNKNOWN     "\033[33m"  // Èervená
+#define GREEN   "\033[32m"  // Zelenï¿½
+#define RED     "\033[31m"  // ï¿½ervenï¿½
+#define UNKNOWN     "\033[33m"  // ï¿½ervenï¿½
 
 using namespace std;
 

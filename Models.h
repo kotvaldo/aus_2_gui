@@ -50,14 +50,14 @@ class Nehnutelnost : public IComparable<Nehnutelnost> {
 public:
     int uid;
     GPS* gps;
-    string nazov; 
+    int supisneCislo;  // Súpisné èíslo
+    std::string popis; // Popis
 
-    Nehnutelnost(int id, GPS* gpsCoord, const string& name = "")
-        : uid(id), gps(new GPS(*gpsCoord)), nazov(name) {}
+    Nehnutelnost(int id, GPS* gpsCoord, int supisne = -1, const std::string& desc = "")
+        : uid(id), gps(new GPS(*gpsCoord)), supisneCislo(supisne), popis(desc) {}
 
-   
     Nehnutelnost(const Nehnutelnost& other)
-        : uid(other.uid), gps(new GPS(*other.gps)), nazov(other.nazov) {}
+        : uid(other.uid), gps(new GPS(*other.gps)), supisneCislo(other.supisneCislo), popis(other.popis) {}
 
     ~Nehnutelnost() { delete gps; }
 
@@ -82,25 +82,30 @@ public:
         }
     }
 
-    // Výpis objektu Nehnutelnost vrátane názvu
     friend ostream& operator<<(ostream& os, const Nehnutelnost& nehnutelnost) {
         os << "Nehnutelnost(uid: " << nehnutelnost.uid
-            << ", GPS: " << *nehnutelnost.gps
-            << ", Name: " << (nehnutelnost.nazov.empty() ? "Unnamed" : nehnutelnost.nazov) << ")";
+           << ", GPS: " << *nehnutelnost.gps
+           << ", Supisne cislo: " << (nehnutelnost.supisneCislo == -1 ? "N/A" : std::to_string(nehnutelnost.supisneCislo))
+           << ", Popis: " << (nehnutelnost.popis.empty() ? "No description" : nehnutelnost.popis) << ")";
         return os;
     }
 };
+
 
 
 class Parcela : public IComparable<Parcela> {
 public:
     int uid;
     GPS* gps;
+    int cisloParcely;  // Èíslo parcely
+    std::string popis; // Popis
 
-    Parcela(int id, GPS* gpsCoord) : uid(id), gps(new GPS(*gpsCoord)) {}
+    Parcela(int id, GPS* gpsCoord, int cislo = -1, const std::string& desc = "")
+        : uid(id), gps(new GPS(*gpsCoord)), cisloParcely(cislo), popis(desc) {}
 
     // Copy constructor for deep copy
-    Parcela(const Parcela& other) : uid(other.uid), gps(new GPS(*other.gps)) {}
+    Parcela(const Parcela& other)
+        : uid(other.uid), gps(new GPS(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis) {}
 
     ~Parcela() { delete gps; }
 
@@ -126,10 +131,14 @@ public:
     }
 
     friend ostream& operator<<(ostream& os, const Parcela& parcela) {
-        os << "Parcela(uid: " << parcela.uid << ", GPS: " << *parcela.gps << ")";
+        os << "Parcela(uid: " << parcela.uid
+           << ", GPS: " << *parcela.gps
+           << ", Cislo parcely: " << (parcela.cisloParcely == -1 ? "N/A" : std::to_string(parcela.cisloParcely))
+           << ", Popis: " << (parcela.popis.empty() ? "No description" : parcela.popis) << ")";
         return os;
     }
 };
+
 
 class Area : public IComparable<Area> {
 public:
@@ -233,8 +242,8 @@ public:
 
     friend ostream& operator<<(ostream& os, const TestClass& testClass) {
         os << "TestClass(uid: " << testClass.uid << ", A: " << testClass.A
-            << ", B: " << testClass.B << ", C: " << testClass.C
-            << ", D: " << testClass.D << ")";
+           << ", B: " << testClass.B << ", C: " << testClass.C
+           << ", D: " << testClass.D << ")";
         return os;
     }
 };
