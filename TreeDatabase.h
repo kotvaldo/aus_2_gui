@@ -98,13 +98,163 @@ public:
 
 
 
-    bool deleteNehnutelnostRecord(int id, int x, int y) {
+    bool deleteNehnutelnostRecord(int id) {
+        auto it = std::find_if(nehnutelnosti.begin(), nehnutelnosti.end(),
+                               [id](Nehnutelnost* nehnutelnost) { return nehnutelnost->uid == id; });
+
+        if (it == nehnutelnosti.end()) {
+            return false;
+        }
+
+        Nehnutelnost* nehnutelnost = *it;
+
+        tree_nehnutelnost.removeNode(nehnutelnost);
+
+        for (auto areaIt = areas.begin(); areaIt != areas.end(); ) {
+            Area* area = *areaIt;
+            if (area->nehnutelnost && area->nehnutelnost->equals(*nehnutelnost)) {
+                tree_area.removeNode(area);
+                delete area;
+                areaIt = areas.erase(areaIt);
+            } else {
+                ++areaIt;
+            }
+        }
+
+        delete nehnutelnost;
+        nehnutelnosti.erase(it);
+
         return true;
     }
 
-    bool deleteParcelaRecord() {
+    bool deleteParcelaRecord(int id) {
+        auto it = std::find_if(parcely.begin(), parcely.end(),
+                               [id](Parcela* parcela) { return parcela->uid == id; });
+
+        if (it == parcely.end()) {
+            return false;
+        }
+
+        Parcela* parcela = *it;
+
+        tree_parcela.removeNode(parcela);
+
+        for (auto areaIt = areas.begin(); areaIt != areas.end(); ) {
+            Area* area = *areaIt;
+            if (area->parcela && area->parcela->equals(*parcela)) {
+                tree_area.removeNode(area);
+                delete area;
+                areaIt = areas.erase(areaIt);
+            } else {
+                ++areaIt;
+            }
+        }
+
+
+        delete parcela;
+        parcely.erase(it);
+
         return true;
     }
+
+    bool editNehnutelnost(int id, int newX1, int newY1, int newX2, int newY2, int newSupisneCislo, const std::string& newDescription) {
+
+        auto it = std::find_if(nehnutelnosti.begin(), nehnutelnosti.end(),
+                               [id](Nehnutelnost* nehnutelnost) { return nehnutelnost->uid == id; });
+
+        if (it == nehnutelnosti.end()) {
+            return false;
+        }
+
+        Nehnutelnost* oldNehnutelnost = *it;
+
+        tree_nehnutelnost.removeNode(oldNehnutelnost);
+
+        for (auto areaIt = areas.begin(); areaIt != areas.end(); ) {
+            Area* area = *areaIt;
+            if (area->nehnutelnost && area->nehnutelnost->equals(*oldNehnutelnost)) {
+                tree_area.removeNode(area);
+                delete area;
+                areaIt = areas.erase(areaIt);
+            } else {
+                ++areaIt;
+            }
+        }
+
+        delete oldNehnutelnost;
+        nehnutelnosti.erase(it);
+
+        addNehnutelnost(newX1, newY1, newX2, newY2, newSupisneCislo, newDescription);
+
+        return true;
+    }
+
+    bool editParcela(int id, int newX1, int newY1, int newX2, int newY2, int newCisloParcely, const std::string& newDescription) {
+        auto it = std::find_if(parcely.begin(), parcely.end(),
+                               [id](Parcela* parcela) { return parcela->uid == id; });
+
+        if (it == parcely.end()) {
+            return false;
+        }
+
+        Parcela* oldParcela = *it;
+
+        tree_parcela.removeNode(oldParcela);
+
+        for (auto areaIt = areas.begin(); areaIt != areas.end(); ) {
+            Area* area = *areaIt;
+            if (area->parcela && area->parcela->equals(oldParcela)) {
+                tree_area.removeNode(area);
+                delete area;
+                areaIt = areas.erase(areaIt);
+            } else {
+                ++areaIt;
+            }
+        }
+
+        delete oldParcela;
+        parcely.erase(it);
+
+        addParcela(newX1, newY1, newX2, newY2, newCisloParcely, newDescription);
+
+        return true;
+    }
+
+
+    std::vector<Nehnutelnost*> findNehnutelnosti(int x1, int y1, int x2, int y2) {
+        GPS gps1(x1, y1);
+        GPS gps2(x2, y2);
+
+        std::vector<Nehnutelnost*> result1 = tree_nehnutelnost.find(&gps1);
+        std::vector<Nehnutelnost*> result2 = tree_nehnutelnost.find(&gps2);
+
+        result1.insert(result1.end(), result2.begin(), result2.end());
+        return result1;
+    }
+
+    std::vector<Parcela*> findParcely(int x1, int y1, int x2, int y2) {
+        GPS gps1(x1, y1);
+        GPS gps2(x2, y2);
+
+        std::vector<Parcela*> result1 = tree_parcela.find(&gps1);
+        std::vector<Parcela*> result2 = tree_parcela.find(&gps2);
+
+        result1.insert(result1.end(), result2.begin(), result2.end());
+        return result1;
+    }
+
+    std::vector<Area*> findAreas(int x1, int y1, int x2, int y2) {
+        GPS gps1(x1, y1);
+        GPS gps2(x2, y2);
+
+        std::vector<Area*> result1 = tree_area.find(&gps1);
+        std::vector<Area*> result2 = tree_area.find(&gps2);
+
+        result1.insert(result1.end(), result2.begin(), result2.end());
+        return result1;
+    }
+
+
 
 };
 
