@@ -254,6 +254,29 @@ public:
         return result1;
     }
 
+    std::vector<Nehnutelnost*> allNehnutelnosti() {
+        std::vector<Nehnutelnost*> result;
+        tree_nehnutelnost.inOrderTraversal([&result](auto* node) {
+            result.push_back(node->_data);
+        });
+        return result;
+    }
+
+    std::vector<Parcela*> allParcely() {
+        std::vector<Parcela*> result;
+        tree_parcela.inOrderTraversal([&result](auto* node) {
+            result.push_back(node->_data);
+        });
+        return result;
+    }
+
+    std::vector<Area*> allAreas() {
+        std::vector<Area*> result;
+        tree_area.inOrderTraversal([&result](auto* node) {
+            result.push_back(node->_data);
+        });
+        return result;
+    }
 
 
 };
