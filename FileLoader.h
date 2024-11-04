@@ -1,4 +1,5 @@
-#include "KDTree.h"
+#pragma once
+
 #include "Models.h"
 #include <iostream>
 #include <vector>
@@ -56,19 +57,29 @@ public:
         std::string line;
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
-            int gpsX, gpsY, supisneCislo;
-            std::string description;
-            if (!(iss >> gpsX >> gpsY >> supisneCislo >> std::ws && std::getline(iss, description))) {
+            std::string uidStr, gpsXStr, gpsYStr, supisneCisloStr, description;
+
+            if (!std::getline(iss, uidStr, ';') ||
+                !std::getline(iss, gpsXStr, ';') ||
+                !std::getline(iss, gpsYStr, ';') ||
+                !std::getline(iss, supisneCisloStr, ';') ||
+                !std::getline(iss, description)) {
                 std::cerr << "Error reading nehnutelnost from file" << std::endl;
+                infile.close();
                 return false;
             }
 
-            int uid = getBiggerIDNehnutelnosti();  // Generovanie UID na základe sharedUIDs.size()
+            int uid = std::stoi(uidStr);
+            int gpsX = std::stoi(gpsXStr);
+            int gpsY = std::stoi(gpsYStr);
+            int supisneCislo = std::stoi(supisneCisloStr);
+
             GPS* gps = new GPS(gpsX, gpsY);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, description);
             nehnutelnosti.push_back(nehnutelnost);
         }
 
+        infile.close();
         return true;
     }
 
@@ -79,37 +90,38 @@ public:
             return false;
         }
 
-
         std::string line;
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
-            int gpsX, gpsY, cisloParcely;
-            std::string description;
-            if (!(iss >> gpsX >> gpsY >> cisloParcely >> std::ws && std::getline(iss, description))) {
+            std::string uidStr, gpsXStr, gpsYStr, cisloParcelyStr, description;
+
+            if (!std::getline(iss, uidStr, ';') ||
+                !std::getline(iss, gpsXStr, ';') ||
+                !std::getline(iss, gpsYStr, ';') ||
+                !std::getline(iss, cisloParcelyStr, ';') ||
+                !std::getline(iss, description)) {
                 std::cerr << "Error reading parcela from file" << std::endl;
+                infile.close();
                 return false;
             }
 
-            int uid = getBiggerUIDParcely();  // Generovanie UID na základe sharedUIDs.size()
+            int uid = std::stoi(uidStr);
+            int gpsX = std::stoi(gpsXStr);
+            int gpsY = std::stoi(gpsYStr);
+            int cisloParcely = std::stoi(cisloParcelyStr);
+
             GPS* gps = new GPS(gpsX, gpsY);
             Parcela* parcela = new Parcela(uid, gps, cisloParcely, description);
             parcely.push_back(parcela);
         }
 
+        infile.close();
         return true;
     }
 
 
-    vector<Nehnutelnost *>& getNehnutelnosti();
-    vector<Parcela *>& getParcely();
+
+
 };
 
-inline vector<Parcela *>& FileLoader::getParcely()
-{
-    return parcely;
-}
 
-inline vector<Nehnutelnost *>& FileLoader::getNehnutelnosti()
-{
-    return nehnutelnosti;
-}

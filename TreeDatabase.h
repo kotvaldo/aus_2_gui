@@ -1,3 +1,4 @@
+#pragma once
 #include "FileLoader.h"
 #include "KDTree.h"
 #include "Models.h"
@@ -14,8 +15,10 @@ private:
     std::vector<int>idArea;
     std::vector<int>idParcely;
     std::vector<int>idNehnutelnost;
+    std::string nehnutelnostiFile;
+    std::string parcelyFile;
 public:
-    TreeDatabase(const std::string& nehnutelnostiFile, const std::string& parcelyFile);
+    TreeDatabase(std::string nehnutelnostiFile, std::string parcelyFile);
 
     int getBiggerUIDArea() {
         if(idArea.empty()) {
@@ -90,12 +93,74 @@ public:
     }
 
 
-    void clearAllData() {
+    void reloadAllData() {
         tree_area.clear();
         tree_nehnutelnost.clear();
         tree_parcela.clear();
+
+        for (Nehnutelnost* nehnutelnost : nehnutelnosti) {
+            delete nehnutelnost;
+        }
+        nehnutelnosti.clear();
+
+        for (Parcela* parcela : parcely) {
+            delete parcela;
+        }
+        parcely.clear();
+
+        for (Area* area : areas) {
+            delete area;
+        }
+        areas.clear();
+
+        idArea.clear();
+        idNehnutelnost.clear();
+        idParcely.clear();
+
+        fileloader.loadNehnutelnosti(nehnutelnostiFile);
+        fileloader.loadParcely(parcelyFile);
+
+        for(Parcela* k : parcely) {
+            tree_parcela.insert(k, k->gps);
+            Area* a = new Area(this->getBiggerUIDArea(), k->gps, nullptr, k);
+            areas.push_back(a);
+            tree_area.insert(a, a->gps);
+        }
+
+        for(Nehnutelnost* k : nehnutelnosti) {
+            tree_nehnutelnost.insert(k, k->gps);
+            Area* a = new Area(this->getBiggerUIDArea(), k->gps, k, nullptr);
+            areas.push_back(a);
+            tree_area.insert(a, a->gps);
+        }
     }
 
+
+    bool deleteAreaRecord(int id) {
+        auto it = std::find_if(areas.begin(), areas.end(),
+                               [id](Area* area) { return (area->nehnutelnost && area->nehnutelnost->uid == id) ||
+                                                         (area->parcela && area->parcela->uid == id); });
+
+        if (it == areas.end()) {
+            return false;
+        }
+
+        Area* area = *it;
+
+        tree_area.removeNode(area);
+
+        // Kontrola a odstránenie z nehnutelností alebo parciel podľa pripojenej entity
+        if (area->nehnutelnost) {
+            deleteNehnutelnostRecord(area->nehnutelnost->uid);
+        } else if (area->parcela) {
+            deleteParcelaRecord(area->parcela->uid);
+        }
+
+        delete area;
+        areas.erase(it);
+
+        return true;
+    }
 
 
     bool deleteNehnutelnostRecord(int id) {
@@ -203,7 +268,7 @@ public:
 
         for (auto areaIt = areas.begin(); areaIt != areas.end(); ) {
             Area* area = *areaIt;
-            if (area->parcela && area->parcela->equals(oldParcela)) {
+            if (area->parcela && area->parcela->equals(*oldParcela)) {
                 tree_area.removeNode(area);
                 delete area;
                 areaIt = areas.erase(areaIt);
@@ -277,13 +342,13 @@ public:
         });
         return result;
     }
-
+    bool saveToFiles();
 
 };
 
 
 
-inline TreeDatabase::TreeDatabase(const string &nehnutelnostiFile, const string &parcelyFile) : tree_nehnutelnost(2), tree_parcela(2), tree_area(2), fileloader(idNehnutelnost, idParcely, nehnutelnosti, parcely)
+inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(2), tree_parcela(2), tree_area(2), fileloader(idNehnutelnost, idParcely, nehnutelnosti, parcely)
 {
     if(fileloader.loadNehnutelnosti(nehnutelnostiFile)) {
         nehnutelnosti = fileloader.getNehnutelnosti();
@@ -306,3 +371,47 @@ inline TreeDatabase::TreeDatabase(const string &nehnutelnostiFile, const string 
     }
 
 }
+
+
+bool TreeDatabase::saveToFiles() {
+    std::ofstream nehnutelnostiOut(nehnutelnostiFile);
+    if (!nehnutelnostiOut) {
+        std::cerr << "Failed to open " << nehnutelnostiFile << " for writing." << std::endl;
+        return false;
+    }
+
+    std::ofstream parcelyOut(parcelyFile);
+    if (!parcelyOut) {
+        std::cerr << "Failed to open " << parcelyFile << " for writing." << std::endl;
+        return false;
+    }
+
+    nehnutelnostiOut << "UID;GPS_X;GPS_Y;SupisneCislo;Popis\n";
+
+    tree_nehnutelnost.inOrderTraversal([&nehnutelnostiOut](auto node) {
+        const Nehnutelnost* nehnutelnost = node->_data;
+        nehnutelnostiOut << nehnutelnost->uid << ";"
+                         << nehnutelnost->gps->x << ";"
+                         << nehnutelnost->gps->y << ";"
+                         << nehnutelnost->supisneCislo << ";"
+                         << nehnutelnost->popis << "\n";
+    });
+
+    parcelyOut << "UID;GPS_X;GPS_Y;CisloParcely;Popis\n";
+
+    tree_parcela.inOrderTraversal([&parcelyOut](auto node) {
+        const Parcela* parcela = node->_data;
+        parcelyOut << parcela->uid << ";"
+                   << parcela->gps->x << ";"
+                   << parcela->gps->y << ";"
+                   << parcela->cisloParcely << ";"
+                   << parcela->popis << "\n";
+    });
+
+
+    nehnutelnostiOut.close();
+    parcelyOut.close();
+
+    return true;
+}
+
