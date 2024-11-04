@@ -318,3 +318,39 @@ void MainWindow::on_delete_btn_clicked()
     this->deleteSelectedItem(ui->list_of_items);
 }
 
+
+void MainWindow::on_show_duplicities_btn_clicked()
+{
+    int x1 = ui->search_x->text().toInt();
+    int y1 = ui->search_y->text().toInt();
+    int x2 = ui->search_x2->text().toInt();
+    int y2 = ui->search_y2->text().toInt();
+    if (type == ProgramType::Area) {
+        RefreshListByArea(ui->list_of_items, database.findAreas(x1,y1,x2,y2));
+    } else if (type == ProgramType::Nehnutelnosti) {
+        RefreshListByNehnutelnosti(ui->list_of_items, database.findNehnutelnosti(x1,y1,x2,y2));
+    } else if (type == ProgramType::Parcely) {
+        RefreshListByParcel(ui->list_of_items, database.findParcely(x1,y1,x2,y2));
+    } else {
+        QMessageBox::warning(this, "Error", "Unknown Program Type!");
+    }
+}
+
+
+void MainWindow::on_pushButton_clicked()
+{
+    this->type = ProgramType::Nehnutelnosti;
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    this->type = ProgramType::Parcely;
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    this->type = ProgramType::Area;
+}
+

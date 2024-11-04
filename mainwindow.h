@@ -55,6 +55,14 @@ private slots:
 
     void on_delete_btn_clicked();
 
+    void on_show_duplicities_btn_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_3_clicked();
+
 private:
     Ui::MainWindow *ui;
     TreeDatabase database;
