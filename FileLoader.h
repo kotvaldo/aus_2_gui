@@ -9,39 +9,42 @@
 class FileLoader {
 private:
 
-    vector<Nehnutelnost*> nehnutelnosti;
-    vector<Parcela*> parcely;
-    std::vector<int>& sharedUIDs;
+    vector<Nehnutelnost*>& nehnutelnosti;
+    vector<Parcela*>& parcely;
+    std::vector<int>&idParcely;
+    std::vector<int>&idNehnutelnost;
 
 public:
-    FileLoader(std::vector<int>& uids) : sharedUIDs(uids) {}
+    FileLoader(std::vector<int>& idNehnutelnost,  std::vector<int>& idParcely, vector<Nehnutelnost*>& nehnutelnosti, vector<Parcela*>& parcely) : idNehnutelnost(idNehnutelnost), idParcely(idParcely),nehnutelnosti(nehnutelnosti), parcely(parcely) {}
 
 
     ~FileLoader() {
-        clearData();
     }
 
 
 
 
 
-    void clearData() {
-        for (auto* nehnutelnost : nehnutelnosti) {
-            delete nehnutelnost;
+
+
+    int getBiggerUIDParcely() {
+        if (idParcely.empty()) {
+            idParcely.push_back(1);
+        } else {
+            idParcely.push_back(idParcely.size() + 1);
         }
-        nehnutelnosti.clear();
+        return idParcely.size() + 1;
+    }
 
-        for (auto* parcela : parcely) {
-            delete parcela;
+    int getBiggerIDNehnutelnosti() {
+        if (idNehnutelnost.empty()) {
+            idNehnutelnost.push_back(1);
+        } else {
+            idNehnutelnost.push_back(idNehnutelnost.size() + 1);
         }
-        parcely.clear();
-
-        sharedUIDs.clear();
+        return idNehnutelnost.size() + 1;
     }
 
-    int getBiggerUID() const {
-        return sharedUIDs.size();
-    }
 
     bool loadNehnutelnosti(const std::string& filename) {
         std::ifstream infile(filename);
@@ -60,11 +63,10 @@ public:
                 return false;
             }
 
-            int uid = getBiggerUID();  // Generovanie UID na základe sharedUIDs.size()
+            int uid = getBiggerIDNehnutelnosti();  // Generovanie UID na základe sharedUIDs.size()
             GPS* gps = new GPS(gpsX, gpsY);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, description);
             nehnutelnosti.push_back(nehnutelnost);
-            sharedUIDs.push_back(uid);
         }
 
         return true;
@@ -88,11 +90,10 @@ public:
                 return false;
             }
 
-            int uid = getBiggerUID();  // Generovanie UID na základe sharedUIDs.size()
+            int uid = getBiggerUIDParcely();  // Generovanie UID na základe sharedUIDs.size()
             GPS* gps = new GPS(gpsX, gpsY);
             Parcela* parcela = new Parcela(uid, gps, cisloParcely, description);
             parcely.push_back(parcela);
-            sharedUIDs.push_back(uid);
         }
 
         return true;

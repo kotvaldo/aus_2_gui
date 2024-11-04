@@ -33,11 +33,11 @@ void populateListWidget(QListWidget* listWidget, const std::vector<Nehnutelnost*
         QString itemText = QString("Nehnutelnost UID: %1").arg(nehnutelnost->uid);
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
 
-        item->setData(Qt::UserRole, nehnutelnost->uid);                        // UID
-        item->setData(Qt::UserRole + 1, QString::number(nehnutelnost->gps->x)); // GPS X
-        item->setData(Qt::UserRole + 2, QString::number(nehnutelnost->gps->y)); // GPS Y
-        item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);           // Supisne Cislo
-        item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis)); // Popis
+        item->setData(Qt::UserRole, nehnutelnost->uid);
+        item->setData(Qt::UserRole + 1, QString::number(nehnutelnost->gps->x));
+        item->setData(Qt::UserRole + 2, QString::number(nehnutelnost->gps->y));
+        item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);
+        item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis));
 
         listWidget->addItem(item);
     }
