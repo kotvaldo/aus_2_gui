@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Models.h"
+#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -55,6 +56,7 @@ public:
         }
 
         std::string line;
+        std::getline(infile, line);
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
             std::string uidStr, gpsXStr, gpsYStr, supisneCisloStr, description;
@@ -69,13 +71,14 @@ public:
                 return false;
             }
 
-            int uid = std::stoi(uidStr);
-            int gpsX = std::stoi(gpsXStr);
-            int gpsY = std::stoi(gpsYStr);
-            int supisneCislo = std::stoi(supisneCisloStr);
+            int uid = getBiggerIDNehnutelnosti();
+            int gpsX = std::stoi(FileLoader::trim(gpsXStr));
+            int gpsY = std::stoi(FileLoader::trim(gpsYStr));
+            int supisneCislo = std::stoi(FileLoader::trim(supisneCisloStr));
+            string popis = FileLoader::trim(description);
 
             GPS* gps = new GPS(gpsX, gpsY);
-            Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, description);
+            Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
             nehnutelnosti.push_back(nehnutelnost);
         }
 
@@ -91,6 +94,7 @@ public:
         }
 
         std::string line;
+        std::getline(infile, line);
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
             std::string uidStr, gpsXStr, gpsYStr, cisloParcelyStr, description;
@@ -105,13 +109,13 @@ public:
                 return false;
             }
 
-            int uid = std::stoi(uidStr);
-            int gpsX = std::stoi(gpsXStr);
-            int gpsY = std::stoi(gpsYStr);
-            int cisloParcely = std::stoi(cisloParcelyStr);
+            int uid = getBiggerUIDParcely();
+            int gpsX = std::stoi(FileLoader::trim(gpsXStr));
+            int gpsY = std::stoi(FileLoader::trim(gpsYStr));
+            int cisloParcely = std::stoi(FileLoader::trim(cisloParcelyStr));
 
             GPS* gps = new GPS(gpsX, gpsY);
-            Parcela* parcela = new Parcela(uid, gps, cisloParcely, description);
+            Parcela* parcela = new Parcela(uid, gps, cisloParcely, FileLoader::trim(description));
             parcely.push_back(parcela);
         }
 
@@ -120,8 +124,13 @@ public:
     }
 
 
-
+    static inline std::string trim(std::string &s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+        return s;
+    }
 
 };
+
 
 

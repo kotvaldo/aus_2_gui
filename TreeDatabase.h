@@ -321,7 +321,7 @@ public:
 
     std::vector<Nehnutelnost*> allNehnutelnosti() {
         std::vector<Nehnutelnost*> result;
-        tree_nehnutelnost.inOrderTraversal([&result](auto* node) {
+        tree_nehnutelnost.levelOrderTraversal([&result](auto* node) {
             result.push_back(node->_data);
         });
         return result;
@@ -329,7 +329,7 @@ public:
 
     std::vector<Parcela*> allParcely() {
         std::vector<Parcela*> result;
-        tree_parcela.inOrderTraversal([&result](auto* node) {
+        tree_parcela.levelOrderTraversal([&result](auto* node) {
             result.push_back(node->_data);
         });
         return result;
@@ -337,12 +337,53 @@ public:
 
     std::vector<Area*> allAreas() {
         std::vector<Area*> result;
-        tree_area.inOrderTraversal([&result](auto* node) {
+        tree_area.levelOrderTraversal([&result](auto* node) {
             result.push_back(node->_data);
         });
         return result;
     }
-    bool saveToFiles();
+    bool saveToFiles() {
+        std::ofstream nehnutelnostiOut(nehnutelnostiFile);
+        if (!nehnutelnostiOut) {
+            std::cerr << "Failed to open " << nehnutelnostiFile << " for writing." << std::endl;
+            return false;
+        }
+
+        std::ofstream parcelyOut(parcelyFile);
+        if (!parcelyOut) {
+            std::cerr << "Failed to open " << parcelyFile << " for writing." << std::endl;
+            return false;
+        }
+
+        nehnutelnostiOut << "UID;GPS_X;GPS_Y;SupisneCislo;Popis\n";
+
+        tree_nehnutelnost.levelOrderTraversal([&nehnutelnostiOut](auto node) {
+            const Nehnutelnost* nehnutelnost = node->_data;
+            nehnutelnostiOut << nehnutelnost->uid << ";"
+                             << nehnutelnost->gps->x << ";"
+                             << nehnutelnost->gps->y << ";"
+                             << nehnutelnost->supisneCislo << ";"
+                             << nehnutelnost->popis << "\n";
+        });
+
+        parcelyOut << "UID;GPS_X;GPS_Y;CisloParcely;Popis\n";
+
+        tree_parcela.levelOrderTraversal([&parcelyOut](auto node) {
+            const Parcela* parcela = node->_data;
+            parcelyOut << parcela->uid << ";"
+                       << parcela->gps->x << ";"
+                       << parcela->gps->y << ";"
+                       << parcela->cisloParcely << ";"
+                       << parcela->popis << "\n";
+        });
+
+
+        nehnutelnostiOut.close();
+        parcelyOut.close();
+
+        return true;
+    }
+
 
 };
 
@@ -350,12 +391,9 @@ public:
 
 inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(2), tree_parcela(2), tree_area(2), fileloader(idNehnutelnost, idParcely, nehnutelnosti, parcely)
 {
-    if(fileloader.loadNehnutelnosti(nehnutelnostiFile)) {
-        nehnutelnosti = fileloader.getNehnutelnosti();
-    }
-    if(fileloader.loadParcely(parcelyFile)) {
-        parcely = fileloader.getParcely();
-    }
+    fileloader.loadNehnutelnosti(nehnutelnostiFile);
+    fileloader.loadParcely(parcelyFile);
+
     for(Parcela* k : parcely) {
         tree_parcela.insert(k, k->gps);
         Area* a = new Area(this->getBiggerUIDArea(), k->gps, nullptr, k);
@@ -373,45 +411,4 @@ inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) 
 }
 
 
-bool TreeDatabase::saveToFiles() {
-    std::ofstream nehnutelnostiOut(nehnutelnostiFile);
-    if (!nehnutelnostiOut) {
-        std::cerr << "Failed to open " << nehnutelnostiFile << " for writing." << std::endl;
-        return false;
-    }
-
-    std::ofstream parcelyOut(parcelyFile);
-    if (!parcelyOut) {
-        std::cerr << "Failed to open " << parcelyFile << " for writing." << std::endl;
-        return false;
-    }
-
-    nehnutelnostiOut << "UID;GPS_X;GPS_Y;SupisneCislo;Popis\n";
-
-    tree_nehnutelnost.inOrderTraversal([&nehnutelnostiOut](auto node) {
-        const Nehnutelnost* nehnutelnost = node->_data;
-        nehnutelnostiOut << nehnutelnost->uid << ";"
-                         << nehnutelnost->gps->x << ";"
-                         << nehnutelnost->gps->y << ";"
-                         << nehnutelnost->supisneCislo << ";"
-                         << nehnutelnost->popis << "\n";
-    });
-
-    parcelyOut << "UID;GPS_X;GPS_Y;CisloParcely;Popis\n";
-
-    tree_parcela.inOrderTraversal([&parcelyOut](auto node) {
-        const Parcela* parcela = node->_data;
-        parcelyOut << parcela->uid << ";"
-                   << parcela->gps->x << ";"
-                   << parcela->gps->y << ";"
-                   << parcela->cisloParcely << ";"
-                   << parcela->popis << "\n";
-    });
-
-
-    nehnutelnostiOut.close();
-    parcelyOut.close();
-
-    return true;
-}
 

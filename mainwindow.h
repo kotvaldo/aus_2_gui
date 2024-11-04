@@ -32,7 +32,6 @@ public:
     void RefreshListByParcel(QListWidget* listWidget, const std::vector<Parcela*>& parcely);
 
 private slots:
-    void on_pushButton_test_clicked();
 
     void on_load_data_btn_clicked();
 
@@ -45,6 +44,10 @@ private slots:
     void on_show_areas_btn_clicked();
 
     void on_edit_selected_btn_clicked();
+
+    void on_add_property_btn_clicked();
+
+    void on_refresh_btn_clicked();
 
 private:
     Ui::MainWindow *ui;

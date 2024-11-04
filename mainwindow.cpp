@@ -7,8 +7,8 @@
 
 //zadaj dva subory na nacitanie
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), database("", "")
-    , ui(new Ui::MainWindow)
+    : QMainWindow(parent), database("C:/Users/adams/Desktop/Nehnutelnosti.csv", "C:/Users/adams/Desktop/Parcely.csv")
+, ui(new Ui::MainWindow)
 {
 
     ui->setupUi(this);
@@ -67,7 +67,12 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
 void MainWindow::RefreshListByNehnutelnosti(QListWidget* listWidget, const std::vector<Nehnutelnost*>& nehnutelnosti) {
     listWidget->clear();
     for (Nehnutelnost* nehnutelnost : nehnutelnosti) {
-        QString itemText = QString("Nehnutelnost UID: %1").arg(nehnutelnost->uid);
+        QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3), Supisne Cislo: %4, Popis: %5")
+        .arg(nehnutelnost->uid)
+            .arg(nehnutelnost->gps->x)
+            .arg(nehnutelnost->gps->y)
+            .arg(nehnutelnost->supisneCislo)
+            .arg(QString::fromStdString(nehnutelnost->popis));
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
 
         item->setData(Qt::UserRole, nehnutelnost->uid);
@@ -88,7 +93,12 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
 
         if (area->nehnutelnost != nullptr) {
             Nehnutelnost* nehnutelnost = area->nehnutelnost;
-            itemText = QString("Nehnutelnost: UID %1").arg(nehnutelnost->uid);
+            itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3), Supisne Cislo: %4, Popis: %5")
+                           .arg(nehnutelnost->uid)
+                           .arg(nehnutelnost->gps->x)
+                           .arg(nehnutelnost->gps->y)
+                           .arg(nehnutelnost->supisneCislo)
+                           .arg(QString::fromStdString(nehnutelnost->popis));
             item = new QListWidgetItem(itemText, listWidget);
             item->setData(Qt::UserRole, nehnutelnost->uid);
             item->setData(Qt::UserRole + 1, nehnutelnost->gps->x);
@@ -99,7 +109,12 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
         }
         else if (area->parcela != nullptr) {
             Parcela* parcela = area->parcela;
-            itemText = QString("Parcela: UID %1").arg(parcela->uid);
+            itemText = QString("Parcela UID: %1, GPS: (%2, %3), Cislo Parcely: %4, Popis: %5")
+                           .arg(parcela->uid)
+                           .arg(parcela->gps->x)
+                           .arg(parcela->gps->y)
+                           .arg(parcela->cisloParcely)
+                           .arg(QString::fromStdString(parcela->popis));
             item = new QListWidgetItem(itemText, listWidget);
             item->setData(Qt::UserRole, parcela->uid);
             item->setData(Qt::UserRole + 1, parcela->gps->x);
@@ -115,21 +130,25 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
     }
 }
 
-
 void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<Parcela*>& parcely) {
     listWidget->clear();
     for (Parcela* parcela : parcely) {
-        QString itemText = QString("Parcela: UID %1").arg(parcela->uid);
+        QString itemText = QString("Parcela UID: %1, GPS: (%2, %3), Cislo Parcely: %4, Popis: %5")
+        .arg(parcela->uid)
+            .arg(parcela->gps->x)
+            .arg(parcela->gps->y)
+            .arg(parcela->cisloParcely)
+            .arg(QString::fromStdString(parcela->popis));
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
         item->setData(Qt::UserRole, parcela->uid);
         item->setData(Qt::UserRole + 1, parcela->gps->x);
         item->setData(Qt::UserRole + 2, parcela->gps->y);
         item->setData(Qt::UserRole + 3, parcela->cisloParcely);
         item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->popis));
+
         listWidget->addItem(item);
     }
 }
-
 
 
 
@@ -158,9 +177,10 @@ void MainWindow::on_add_parcel_btn_clicked()
     int number = ui->number_parcels->text().toInt();
     QString description = ui->desc_parcels->text();
 
-    database.addParcela(x1, y1, x2, y2, number, description.toStdString());
+    database.addParcela(x1, y1, x2, y2, number, description.toStdString());    
 
 }
+
 
 
 void MainWindow::on_show_propert_btn_clicked()
@@ -242,6 +262,34 @@ void MainWindow::on_edit_selected_btn_clicked() {
     default:
         QMessageBox::warning(this, "Error", "Unknown Program Type!");
         break;
+    }
+}
+
+
+
+void MainWindow::on_add_property_btn_clicked()
+{
+    int x1 = ui->x1_parcels->text().toInt();
+    int y1 = ui->y1_parcels->text().toInt();
+    int x2 = ui->x2_parcels->text().toInt();
+    int y2 = ui->y2_parcels->text().toInt();
+    int number = ui->number_parcels->text().toInt();
+    QString description = ui->desc_parcels->text();
+
+    database.addNehnutelnost(x1, y1, x2, y2, number, description.toStdString());
+}
+
+
+void MainWindow::on_refresh_btn_clicked()
+{
+    if (type == ProgramType::Area) {
+        RefreshListByArea(ui->list_of_items, database.allAreas());
+    } else if (type == ProgramType::Nehnutelnosti) {
+        RefreshListByNehnutelnosti(ui->list_of_items, database.allNehnutelnosti());
+    } else if (type == ProgramType::Parcely) {
+        RefreshListByParcel(ui->list_of_items, database.allParcely());
+    } else {
+        QMessageBox::warning(this, "Error", "Unknown Program Type!");
     }
 }
 
