@@ -49,6 +49,12 @@ private slots:
 
     void on_refresh_btn_clicked();
 
+    void on_clear_btn_clicked();
+
+    void on_save_button_clicked();
+
+    void on_delete_btn_clicked();
+
 private:
     Ui::MainWindow *ui;
     TreeDatabase database;

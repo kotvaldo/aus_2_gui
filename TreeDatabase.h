@@ -92,27 +92,43 @@ public:
         tree_area.insert(area2, gps2);
     }
 
+    void clearAllData() {
+        tree_area.clear();
+        tree_nehnutelnost.clear();
+        tree_parcela.clear();
+
+
+        areas.clear();
+
+
+        nehnutelnosti.clear();
+
+
+        parcely.clear();
+
+
+        idArea.clear();
+        idNehnutelnost.clear();
+        idParcely.clear();
+    }
 
     void reloadAllData() {
         tree_area.clear();
         tree_nehnutelnost.clear();
         tree_parcela.clear();
 
-        for (Nehnutelnost* nehnutelnost : nehnutelnosti) {
-            delete nehnutelnost;
-        }
-        nehnutelnosti.clear();
 
-        for (Parcela* parcela : parcely) {
-            delete parcela;
-        }
-        parcely.clear();
-
-        for (Area* area : areas) {
-            delete area;
-        }
         areas.clear();
 
+
+        nehnutelnosti.clear();
+
+
+        parcely.clear();
+
+        // Vyčistenie stromov
+
+        // Vymazanie ID zoznamov
         idArea.clear();
         idNehnutelnost.clear();
         idParcely.clear();
@@ -138,8 +154,7 @@ public:
 
     bool deleteAreaRecord(int id) {
         auto it = std::find_if(areas.begin(), areas.end(),
-                               [id](Area* area) { return (area->nehnutelnost && area->nehnutelnost->uid == id) ||
-                                                         (area->parcela && area->parcela->uid == id); });
+                               [id](Area* area) { return area->uid == id; });
 
         if (it == areas.end()) {
             return false;
@@ -149,11 +164,18 @@ public:
 
         tree_area.removeNode(area);
 
-        // Kontrola a odstránenie z nehnutelností alebo parciel podľa pripojenej entity
         if (area->nehnutelnost) {
-            deleteNehnutelnostRecord(area->nehnutelnost->uid);
+            tree_nehnutelnost.removeNode(area->nehnutelnost);
+            auto nehIt = std::find(nehnutelnosti.begin(), nehnutelnosti.end(), area->nehnutelnost);
+            if (nehIt != nehnutelnosti.end()) {
+                nehnutelnosti.erase(nehIt);
+            }
         } else if (area->parcela) {
-            deleteParcelaRecord(area->parcela->uid);
+            tree_parcela.removeNode(area->parcela);
+            auto parIt = std::find(parcely.begin(), parcely.end(), area->parcela);
+            if (parIt != parcely.end()) {
+                parcely.erase(parIt);
+            }
         }
 
         delete area;
@@ -161,6 +183,7 @@ public:
 
         return true;
     }
+
 
 
     bool deleteNehnutelnostRecord(int id) {
@@ -186,7 +209,6 @@ public:
             }
         }
 
-        delete nehnutelnost;
         nehnutelnosti.erase(it);
 
         return true;
@@ -216,13 +238,11 @@ public:
         }
 
 
-        delete parcela;
         parcely.erase(it);
 
         return true;
     }
-
-    bool editNehnutelnost(int id, int newX1, int newY1, int newX2, int newY2, int newSupisneCislo, const std::string& newDescription) {
+    bool editNehnutelnost(int id, int newX1, int newY1, int newSupisneCislo, const std::string& newDescription) {
 
         auto it = std::find_if(nehnutelnosti.begin(), nehnutelnosti.end(),
                                [id](Nehnutelnost* nehnutelnost) { return nehnutelnost->uid == id; });
@@ -239,22 +259,31 @@ public:
             Area* area = *areaIt;
             if (area->nehnutelnost && area->nehnutelnost->equals(*oldNehnutelnost)) {
                 tree_area.removeNode(area);
-                delete area;
-                areaIt = areas.erase(areaIt);
+                areas.erase(areaIt);
             } else {
                 ++areaIt;
             }
         }
 
-        delete oldNehnutelnost;
-        nehnutelnosti.erase(it);
+        // Aktualizácia vlastností nehnuteľnosti
+        oldNehnutelnost->gps->x = newX1;
+        oldNehnutelnost->gps->y = newY1;
+        oldNehnutelnost->supisneCislo = newSupisneCislo;
+        oldNehnutelnost->popis = newDescription;
 
-        addNehnutelnost(newX1, newY1, newX2, newY2, newSupisneCislo, newDescription);
+
+        tree_nehnutelnost.insert( oldNehnutelnost, oldNehnutelnost->gps);
+
+
+        Area* newArea = new Area(getBiggerUIDArea(), oldNehnutelnost->gps, oldNehnutelnost);
+        areas.push_back(newArea);
+        tree_area.insert(newArea, oldNehnutelnost->gps);
 
         return true;
     }
 
-    bool editParcela(int id, int newX1, int newY1, int newX2, int newY2, int newCisloParcely, const std::string& newDescription) {
+
+    bool editParcela(int id, int newX1, int newY1, int newCisloParcely, const std::string& newDescription) {
         auto it = std::find_if(parcely.begin(), parcely.end(),
                                [id](Parcela* parcela) { return parcela->uid == id; });
 
@@ -270,17 +299,22 @@ public:
             Area* area = *areaIt;
             if (area->parcela && area->parcela->equals(*oldParcela)) {
                 tree_area.removeNode(area);
-                delete area;
                 areaIt = areas.erase(areaIt);
             } else {
                 ++areaIt;
             }
         }
 
-        delete oldParcela;
-        parcely.erase(it);
+        oldParcela->gps->x = newX1;
+        oldParcela->gps->y = newY1;
+        oldParcela->cisloParcely = newCisloParcely;
+        oldParcela->popis = newDescription;
 
-        addParcela(newX1, newY1, newX2, newY2, newCisloParcely, newDescription);
+        tree_parcela.insert(oldParcela, oldParcela->gps);
+
+        Area* newArea = new Area(getBiggerUIDArea(), oldParcela->gps, nullptr,  oldParcela);
+        areas.push_back(newArea);
+        tree_area.insert(newArea, oldParcela->gps);
 
         return true;
     }

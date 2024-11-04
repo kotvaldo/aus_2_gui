@@ -15,7 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
     resize(1024, 768);
     showMaximized();
 
-
 }
 
 MainWindow::~MainWindow()
@@ -49,7 +48,6 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
         if (success) {
             delete selectedItem;
 
-            // Osvieženie zoznamu na základe aktuálneho typu
             if (type == ProgramType::Area) {
                 RefreshListByArea(listWidget, database.allAreas());
             } else if (type == ProgramType::Nehnutelnosti) {
@@ -215,8 +213,6 @@ void MainWindow::on_edit_selected_btn_clicked() {
 
     int newX1 = ui->new_x1->text().toInt();
     int newY1 = ui->new_y1->text().toInt();
-    int newX2 = ui->new_x2->text().toInt();
-    int newY2 = ui->new_y2->text().toInt();
     int newNumber = ui->new_number->text().toInt(); // Could be Supisne Cislo or Cislo Parcely
     QString newDesc = ui->new_desc->text();
 
@@ -225,14 +221,14 @@ void MainWindow::on_edit_selected_btn_clicked() {
         bool isNehnutelnost = selectedItem->data(Qt::UserRole + 5).toBool();
 
         if (isNehnutelnost) {
-            bool success = database.editNehnutelnost(uid, newX1, newY1, newX2, newY2, newNumber, newDesc.toStdString());
+            bool success = database.editNehnutelnost(uid, newX1, newY1, newNumber, newDesc.toStdString());
             if (success) {
                 RefreshListByArea(ui->list_of_items, database.allAreas());
             } else {
                 QMessageBox::warning(this, "Error", "Failed to edit Nehnutelnost!");
             }
         } else {
-            bool success = database.editParcela(uid, newX1, newY1, newX2, newY2, newNumber, newDesc.toStdString());
+            bool success = database.editParcela(uid, newX1, newY1, newNumber, newDesc.toStdString());
             if (success) {
                 RefreshListByArea(ui->list_of_items, database.allAreas());
             } else {
@@ -242,7 +238,7 @@ void MainWindow::on_edit_selected_btn_clicked() {
         break;
     }
     case ProgramType::Nehnutelnosti: {
-        bool success = database.editNehnutelnost(uid, newX1, newY1, newX2, newY2, newNumber, newDesc.toStdString());
+        bool success = database.editNehnutelnost(uid, newX1, newY1, newNumber, newDesc.toStdString());
         if (success) {
             RefreshListByNehnutelnosti(ui->list_of_items, database.allNehnutelnosti());
         } else {
@@ -251,7 +247,7 @@ void MainWindow::on_edit_selected_btn_clicked() {
         break;
     }
     case ProgramType::Parcely: {
-        bool success = database.editParcela(uid, newX1, newY1, newX2, newY2, newNumber, newDesc.toStdString());
+        bool success = database.editParcela(uid, newX1, newY1, newNumber, newDesc.toStdString());
         if (success) {
             RefreshListByParcel(ui->list_of_items, database.allParcely());
         } else {
@@ -269,12 +265,12 @@ void MainWindow::on_edit_selected_btn_clicked() {
 
 void MainWindow::on_add_property_btn_clicked()
 {
-    int x1 = ui->x1_parcels->text().toInt();
-    int y1 = ui->y1_parcels->text().toInt();
-    int x2 = ui->x2_parcels->text().toInt();
-    int y2 = ui->y2_parcels->text().toInt();
-    int number = ui->number_parcels->text().toInt();
-    QString description = ui->desc_parcels->text();
+    int x1 = ui->x1_property->text().toInt();
+    int y1 = ui->y1_property->text().toInt();
+    int x2 = ui->x2_property->text().toInt();
+    int y2 = ui->y2_property->text().toInt();
+    int number = ui->number_property->text().toInt();
+    QString description = ui->desc_property->text();
 
     database.addNehnutelnost(x1, y1, x2, y2, number, description.toStdString());
 }
@@ -293,4 +289,32 @@ void MainWindow::on_refresh_btn_clicked()
     }
 }
 
+
+
+void MainWindow::on_clear_btn_clicked()
+{
+    database.clearAllData();
+    if (type == ProgramType::Area) {
+        RefreshListByArea(ui->list_of_items, database.allAreas());
+    } else if (type == ProgramType::Nehnutelnosti) {
+        RefreshListByNehnutelnosti(ui->list_of_items, database.allNehnutelnosti());
+    } else if (type == ProgramType::Parcely) {
+        RefreshListByParcel(ui->list_of_items, database.allParcely());
+    } else {
+        QMessageBox::warning(this, "Error", "Unknown Program Type!");
+    }
+
+}
+
+
+void MainWindow::on_save_button_clicked()
+{
+    database.saveToFiles();
+}
+
+
+void MainWindow::on_delete_btn_clicked()
+{
+    this->deleteSelectedItem(ui->list_of_items);
+}
 
