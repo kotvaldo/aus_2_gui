@@ -13,11 +13,19 @@ public:
 
 class GPS : public IComparable<GPS> {
 public:
-    int x, y;
+    double x, y;
+    char width;
+    char length;
 
-    GPS(int x = 0, int y = 0) : x(x), y(y) {}
+    //prerobit na double
+    //pridat N a S
 
-    GPS(const GPS& other) : x(other.x), y(other.y) {}
+
+    GPS(double x = 0, double y = 0, char width = 'N', char length = 'W') : x(x), y(y), width(width), length(length) {
+        std::cout << "GPS initialized: " << *this << std::endl;
+    }
+
+    GPS(const GPS& other) : x(other.x), y(other.y), width(other.width), length(other.length) {}
 
     int compare(const GPS& other, int cur_level) const override {
         if (cur_level % 2 == 0) {
@@ -41,17 +49,19 @@ public:
     }
 
     friend ostream& operator<<(ostream& os, const GPS& gps) {
-        os << "(" << gps.x << ", " << gps.y << ")";
+        os << "(x: " << gps.x << ", y: " << gps.y
+           << ", width: " << gps.width << ", length: " << gps.length << ")";
         return os;
     }
+
 };
 
 class Nehnutelnost : public IComparable<Nehnutelnost> {
 public:
     int uid;
     GPS* gps;
-    int supisneCislo;  // Súpisné èíslo
-    std::string popis; // Popis
+    int supisneCislo;
+    std::string popis;
 
     Nehnutelnost(int id, GPS* gpsCoord, int supisne = -1, const std::string& desc = "")
         : uid(id), gps(new GPS(*gpsCoord)), supisneCislo(supisne), popis(desc) {}
@@ -97,8 +107,8 @@ class Parcela : public IComparable<Parcela> {
 public:
     int uid;
     GPS* gps;
-    int cisloParcely;  // Èíslo parcely
-    std::string popis; // Popis
+    int cisloParcely;
+    std::string popis;
 
     Parcela(int id, GPS* gpsCoord, int cislo = -1, const std::string& desc = "")
         : uid(id), gps(new GPS(*gpsCoord)), cisloParcely(cislo), popis(desc) {}
@@ -150,7 +160,6 @@ public:
     Area(int id, GPS* gpsCoord, Nehnutelnost* nehnut = nullptr, Parcela* parc = nullptr)
         : uid(id), gps(new GPS(*gpsCoord)), nehnutelnost(nehnut), parcela(parc) {}
 
-    // Copy constructor for deep copy
     Area(const Area& other)
         : uid(other.uid), gps(new GPS(*other.gps)),
         nehnutelnost(other.nehnutelnost ? new Nehnutelnost(*other.nehnutelnost) : nullptr),
@@ -203,7 +212,6 @@ public:
     TestClass(int id, double a, const string& b, int c, double d)
         : uid(id), A(a), B(b), C(c), D(d) {}
 
-    // Copy constructor for deep copy
     TestClass(const TestClass& other) : uid(other.uid), A(other.A), B(other.B), C(other.C), D(other.D) {}
 
     int compare(const TestClass& other, int cur_level) const override {

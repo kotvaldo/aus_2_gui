@@ -19,7 +19,6 @@ private:
 public:
     FileLoader(std::vector<int>& idNehnutelnost,  std::vector<int>& idParcely, vector<Nehnutelnost*>& nehnutelnosti, vector<Parcela*>& parcely) : idNehnutelnost(idNehnutelnost), idParcely(idParcely),nehnutelnosti(nehnutelnosti), parcely(parcely) {}
 
-
     ~FileLoader() {
     }
 
@@ -56,14 +55,16 @@ public:
         }
 
         std::string line;
-        std::getline(infile, line);
+        std::getline(infile, line); // Skip header line
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
-            std::string uidStr, gpsXStr, gpsYStr, supisneCisloStr, description;
+            std::string uidStr, gpsXStr, gpsYStr, widthStr, lengthStr, supisneCisloStr, description;
 
             if (!std::getline(iss, uidStr, ';') ||
                 !std::getline(iss, gpsXStr, ';') ||
                 !std::getline(iss, gpsYStr, ';') ||
+                !std::getline(iss, widthStr, ';') ||
+                !std::getline(iss, lengthStr, ';') ||
                 !std::getline(iss, supisneCisloStr, ';') ||
                 !std::getline(iss, description)) {
                 std::cerr << "Error reading nehnutelnost from file" << std::endl;
@@ -71,13 +72,15 @@ public:
                 return false;
             }
 
-            int uid = getBiggerIDNehnutelnosti();
-            int gpsX = std::stoi(FileLoader::trim(gpsXStr));
-            int gpsY = std::stoi(FileLoader::trim(gpsYStr));
+            int uid = std::stoi(uidStr);
+            double gpsX = std::stod(FileLoader::trim(gpsXStr));
+            double gpsY = std::stod(FileLoader::trim(gpsYStr));
+            char width = FileLoader::trim(widthStr)[0];
+            char length = FileLoader::trim(lengthStr)[0];
             int supisneCislo = std::stoi(FileLoader::trim(supisneCisloStr));
-            string popis = FileLoader::trim(description);
+            std::string popis = FileLoader::trim(description);
 
-            GPS* gps = new GPS(gpsX, gpsY);
+            GPS* gps = new GPS(gpsX, gpsY, width, length);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
             nehnutelnosti.push_back(nehnutelnost);
         }
@@ -85,6 +88,7 @@ public:
         infile.close();
         return true;
     }
+
 
     bool loadParcely(const std::string& filename) {
         std::ifstream infile(filename);
@@ -94,14 +98,16 @@ public:
         }
 
         std::string line;
-        std::getline(infile, line);
+        std::getline(infile, line); // Skip header line
         while (std::getline(infile, line)) {
             std::istringstream iss(line);
-            std::string uidStr, gpsXStr, gpsYStr, cisloParcelyStr, description;
+            std::string uidStr, gpsXStr, gpsYStr, widthStr, lengthStr, cisloParcelyStr, description;
 
             if (!std::getline(iss, uidStr, ';') ||
                 !std::getline(iss, gpsXStr, ';') ||
                 !std::getline(iss, gpsYStr, ';') ||
+                !std::getline(iss, widthStr, ';') ||
+                !std::getline(iss, lengthStr, ';') ||
                 !std::getline(iss, cisloParcelyStr, ';') ||
                 !std::getline(iss, description)) {
                 std::cerr << "Error reading parcela from file" << std::endl;
@@ -109,13 +115,16 @@ public:
                 return false;
             }
 
-            int uid = getBiggerUIDParcely();
-            int gpsX = std::stoi(FileLoader::trim(gpsXStr));
-            int gpsY = std::stoi(FileLoader::trim(gpsYStr));
+            int uid = std::stoi(uidStr);
+            double gpsX = std::stod(FileLoader::trim(gpsXStr));
+            double gpsY = std::stod(FileLoader::trim(gpsYStr));
+            char width = FileLoader::trim(widthStr)[0];
+            char length = FileLoader::trim(lengthStr)[0];
             int cisloParcely = std::stoi(FileLoader::trim(cisloParcelyStr));
+            std::string popis = FileLoader::trim(description);
 
-            GPS* gps = new GPS(gpsX, gpsY);
-            Parcela* parcela = new Parcela(uid, gps, cisloParcely, FileLoader::trim(description));
+            GPS* gps = new GPS(gpsX, gpsY, width, length);
+            Parcela* parcela = new Parcela(uid, gps, cisloParcely, popis);
             parcely.push_back(parcela);
         }
 

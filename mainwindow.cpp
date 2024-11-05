@@ -14,6 +14,33 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     resize(1024, 768);
     showMaximized();
+    ui->comboBox_width_neh_1->addItem("N");
+    ui->comboBox_width_neh_1->addItem("S");
+
+    ui->comboBox_width_neh_2->addItem("N");
+    ui->comboBox_width_neh_2->addItem("S");
+
+    ui->comboBox_width_par->addItem("N");
+    ui->comboBox_width_par->addItem("S");
+
+    ui->comboBox_length_par->addItem("W");
+    ui->comboBox_length_par->addItem("E");
+
+    ui->comboBox_length_neh_1->addItem("W");
+    ui->comboBox_length_neh_1->addItem("E");
+
+    ui->comboBox_length_par_2->addItem("W");
+    ui->comboBox_length_par_2->addItem("E");
+
+    ui->comboBox_length_neh_2->addItem("W");
+    ui->comboBox_length_neh_2->addItem("E");
+
+    ui->comboBox_width_par_2->addItem("N");
+    ui->comboBox_width_par_2->addItem("S");
+
+    ui->comboBox_program_type->addItem("Nehnutelosti");
+    ui->comboBox_program_type->addItem("Parcely");
+    ui->comboBox_program_type->addItem("Area");
 
 }
 
@@ -62,13 +89,16 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
 }
 
 
+
 void MainWindow::RefreshListByNehnutelnosti(QListWidget* listWidget, const std::vector<Nehnutelnost*>& nehnutelnosti) {
     listWidget->clear();
     for (Nehnutelnost* nehnutelnost : nehnutelnosti) {
-        QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3), Supisne Cislo: %4, Popis: %5")
+        QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
         .arg(nehnutelnost->uid)
             .arg(nehnutelnost->gps->x)
             .arg(nehnutelnost->gps->y)
+            .arg(nehnutelnost->gps->width)
+            .arg(nehnutelnost->gps->length)
             .arg(nehnutelnost->supisneCislo)
             .arg(QString::fromStdString(nehnutelnost->popis));
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
@@ -81,7 +111,11 @@ void MainWindow::RefreshListByNehnutelnosti(QListWidget* listWidget, const std::
 
         listWidget->addItem(item);
     }
+
+    type = ProgramType::Nehnutelnosti;
+    ui->label_count->setText("Počet nehnutelnosti: " + QString::number(nehnutelnosti.size()));
 }
+
 
 void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Area*>& areas) {
     listWidget->clear();
@@ -91,10 +125,12 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
 
         if (area->nehnutelnost != nullptr) {
             Nehnutelnost* nehnutelnost = area->nehnutelnost;
-            itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3), Supisne Cislo: %4, Popis: %5")
+            itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
                            .arg(nehnutelnost->uid)
                            .arg(nehnutelnost->gps->x)
                            .arg(nehnutelnost->gps->y)
+                           .arg(nehnutelnost->gps->width)
+                           .arg(nehnutelnost->gps->length)
                            .arg(nehnutelnost->supisneCislo)
                            .arg(QString::fromStdString(nehnutelnost->popis));
             item = new QListWidgetItem(itemText, listWidget);
@@ -104,13 +140,14 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
             item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);
             item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis));
             item->setData(Qt::UserRole + 5, true);  // true znamená Nehnutelnost
-        }
-        else if (area->parcela != nullptr) {
+        } else if (area->parcela != nullptr) {
             Parcela* parcela = area->parcela;
-            itemText = QString("Parcela UID: %1, GPS: (%2, %3), Cislo Parcely: %4, Popis: %5")
+            itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
                            .arg(parcela->uid)
                            .arg(parcela->gps->x)
                            .arg(parcela->gps->y)
+                           .arg(parcela->gps->width)
+                           .arg(parcela->gps->length)
                            .arg(parcela->cisloParcely)
                            .arg(QString::fromStdString(parcela->popis));
             item = new QListWidgetItem(itemText, listWidget);
@@ -126,15 +163,19 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
             listWidget->addItem(item);
         }
     }
+    type = ProgramType::Area;
+     ui->label_count->setText("Počet area: " + QString::number(areas.size()));
 }
 
 void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<Parcela*>& parcely) {
     listWidget->clear();
     for (Parcela* parcela : parcely) {
-        QString itemText = QString("Parcela UID: %1, GPS: (%2, %3), Cislo Parcely: %4, Popis: %5")
+        QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
         .arg(parcela->uid)
             .arg(parcela->gps->x)
             .arg(parcela->gps->y)
+            .arg(parcela->gps->width)
+            .arg(parcela->gps->length)
             .arg(parcela->cisloParcely)
             .arg(QString::fromStdString(parcela->popis));
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
@@ -146,6 +187,9 @@ void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<
 
         listWidget->addItem(item);
     }
+    type = ProgramType::Parcely;
+    ui->label_count->setText("Počet parciel: " + QString::number(parcely.size()));
+
 }
 
 
@@ -154,8 +198,6 @@ void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<
 
 void MainWindow::on_load_data_btn_clicked()
 {
-
-    database.reloadAllData();
     if (type == ProgramType::Area) {
         RefreshListByArea(ui->list_of_items, database.allAreas());
     } else if (type == ProgramType::Nehnutelnosti) {
@@ -166,17 +208,29 @@ void MainWindow::on_load_data_btn_clicked()
 }
 
 
-void MainWindow::on_add_parcel_btn_clicked()
-{
-    int x1 = ui->x1_parcels->text().toInt();
-    int y1 = ui->y1_parcels->text().toInt();
-    int x2 = ui->x2_parcels->text().toInt();
-    int y2 = ui->y2_parcels->text().toInt();
-    int number = ui->number_parcels->text().toInt();
+void MainWindow::on_add_parcel_btn_clicked() {
+    double x1 = ui->x1_parcels->text().toDouble();
+    double y1 = ui->y1_parcels->text().toDouble();
+    char width1 = ui->comboBox_width_par->currentText().toStdString()[0];
+    char length1 = ui->comboBox_length_par->currentText().toStdString()[0];
     QString description = ui->desc_parcels->text();
+    int number = ui->number_parcels->text().toInt();
 
-    database.addParcela(x1, y1, x2, y2, number, description.toStdString());    
+    bool hasSecondCoordinates = !ui->x2_parcels->text().isEmpty() && !ui->y2_parcels->text().isEmpty();
 
+    if (hasSecondCoordinates) {
+        double x2 = ui->x2_parcels->text().toDouble();
+        double y2 = ui->y2_parcels->text().toDouble();
+        char width2 = ui->comboBox_width_par_2->currentText().toStdString()[0];
+        char length2 = ui->comboBox_length_par_2->currentText().toStdString()[0];
+
+        database.addParcela(x1, y1, width1, length1, x2, y2, width2, length2, number, description.toStdString());
+    } else {
+        database.addParcela(x1, y1, width1, length1, number, description.toStdString());
+    }
+
+    RefreshListByParcel(ui->list_of_items, database.allParcely());
+    type = ProgramType::Parcely;
 }
 
 
@@ -211,9 +265,9 @@ void MainWindow::on_edit_selected_btn_clicked() {
 
     int uid = selectedItem->data(Qt::UserRole).toInt();
 
-    int newX1 = ui->new_x1->text().toInt();
-    int newY1 = ui->new_y1->text().toInt();
-    int newNumber = ui->new_number->text().toInt(); // Could be Supisne Cislo or Cislo Parcely
+    double newX1 = ui->new_x1->text().toDouble();
+    double newY1 = ui->new_y1->text().toDouble();
+    int newNumber = ui->new_number->text().toInt();
     QString newDesc = ui->new_desc->text();
 
     switch (type) {
@@ -263,17 +317,29 @@ void MainWindow::on_edit_selected_btn_clicked() {
 
 
 
-void MainWindow::on_add_property_btn_clicked()
-{
-    int x1 = ui->x1_property->text().toInt();
-    int y1 = ui->y1_property->text().toInt();
-    int x2 = ui->x2_property->text().toInt();
-    int y2 = ui->y2_property->text().toInt();
-    int number = ui->number_property->text().toInt();
+void MainWindow::on_add_property_btn_clicked() {
+    double x1 = ui->x1_property->text().toDouble();
+    double y1 = ui->y1_property->text().toDouble();
     QString description = ui->desc_property->text();
+    int number = ui->number_property->text().toInt();
 
-    database.addNehnutelnost(x1, y1, x2, y2, number, description.toStdString());
+    char width1 = ui->comboBox_width_neh_1->currentText().toStdString()[0];
+    char length1 = ui->comboBox_length_neh_1->currentText().toStdString()[0];
+
+    bool hasSecondCoordinates = !ui->x2_property->text().isEmpty() && !ui->y2_property->text().isEmpty();
+
+    if (hasSecondCoordinates) {
+        double x2 = ui->x2_property->text().toDouble();
+        double y2 = ui->y2_property->text().toDouble();
+        char width2 = ui->comboBox_width_neh_2->currentText().toStdString()[0];
+        char length2 = ui->comboBox_length_neh_2->currentText().toStdString()[0];
+
+        database.addNehnutelnost(x1, y1, width1, length1, x2, y2, width2, length2, number, description.toStdString());
+    } else {
+        database.addNehnutelnost(x1, y1, width1, length1, number, description.toStdString());
+    }
 }
+
 
 
 void MainWindow::on_refresh_btn_clicked()
@@ -319,21 +385,35 @@ void MainWindow::on_delete_btn_clicked()
 }
 
 
-void MainWindow::on_show_duplicities_btn_clicked()
-{
-    int x1 = ui->search_x->text().toInt();
-    int y1 = ui->search_y->text().toInt();
-    int x2 = ui->search_x2->text().toInt();
-    int y2 = ui->search_y2->text().toInt();
+void MainWindow::on_show_duplicities_btn_clicked() {
+    double x1 = ui->search_x->text().toDouble();
+    double y1 = ui->search_y->text().toDouble();
+    bool hasSecondCoordinate = !(ui->search_x2->text().isEmpty() || ui->search_y2->text().isEmpty());
+    double x2 = hasSecondCoordinate ? ui->search_x2->text().toDouble() : 0;
+    double y2 = hasSecondCoordinate ? ui->search_y2->text().toDouble() : 0;
+
     if (type == ProgramType::Area) {
-        RefreshListByArea(ui->list_of_items, database.findAreas(x1,y1,x2,y2));
+        if (hasSecondCoordinate) {
+            RefreshListByArea(ui->list_of_items, database.findAreas(x1, y1, x2, y2));
+        } else {
+            RefreshListByArea(ui->list_of_items, database.findAreasOnly(x1, y1));
+        }
     } else if (type == ProgramType::Nehnutelnosti) {
-        RefreshListByNehnutelnosti(ui->list_of_items, database.findNehnutelnosti(x1,y1,x2,y2));
+        if (hasSecondCoordinate) {
+            RefreshListByNehnutelnosti(ui->list_of_items, database.findNehnutelnosti(x1, y1, x2, y2));
+        } else {
+            RefreshListByNehnutelnosti(ui->list_of_items, database.findNehnutelnostiOnly(x1, y1));
+        }
     } else if (type == ProgramType::Parcely) {
-        RefreshListByParcel(ui->list_of_items, database.findParcely(x1,y1,x2,y2));
+        if (hasSecondCoordinate) {
+            RefreshListByParcel(ui->list_of_items, database.findParcely(x1, y1, x2, y2));
+        } else {
+            RefreshListByParcel(ui->list_of_items, database.findParcelyOnly(x1, y1));
+        }
     } else {
         QMessageBox::warning(this, "Error", "Unknown Program Type!");
     }
+
 }
 
 
@@ -352,5 +432,47 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::on_pushButton_3_clicked()
 {
     this->type = ProgramType::Area;
+}
+
+
+void MainWindow::on_load_from_file_clicked()
+{
+    database.LoadDataFromFile();
+}
+
+
+void MainWindow::on_list_of_items_itemClicked(QListWidgetItem *item) {
+    this->ui->new_x1->setText(QString::number(item->data(Qt::UserRole + 1).toDouble()));
+    this->ui->new_y1->setText(QString::number(item->data(Qt::UserRole + 2).toDouble()));
+    this->ui->new_number->setText(item->data(Qt::UserRole + 3).toString());
+    this->ui->new_desc->setText(item->data(Qt::UserRole + 4).toString());
+    this->ui->search_x->setText(QString::number(item->data(Qt::UserRole + 1).toDouble()));
+    this->ui->search_y->setText(QString::number(item->data(Qt::UserRole + 2).toDouble()));
+}
+
+
+void MainWindow::on_generate_btn_clicked()
+{
+
+    int countPar = ui->generate_count_par->text().toInt();
+    int countNeh = ui->generate_count_nehm->text().toInt();
+    double prekryv = ui->generate_prekryv->text().toDouble();
+    database.generateRandomUnits(countPar, countNeh, prekryv);
+    RefreshListByArea(ui->list_of_items, database.allAreas());
+}
+
+
+void MainWindow::on_comboBox_program_type_currentIndexChanged(int index)
+{
+    if(index == 0) {
+        type = ProgramType::Nehnutelnosti;
+        RefreshListByNehnutelnosti(ui->list_of_items, database.allNehnutelnosti());
+    } else if(index == 1) {
+        type = ProgramType::Parcely;
+        RefreshListByParcel(ui->list_of_items, database.allParcely());
+    } else if (index == 2) {
+        type = ProgramType::Area;
+        RefreshListByArea(ui->list_of_items, database.allAreas());
+    }
 }
 

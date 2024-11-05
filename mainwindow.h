@@ -63,6 +63,14 @@ private slots:
 
     void on_pushButton_3_clicked();
 
+    void on_load_from_file_clicked();
+
+    void on_list_of_items_itemClicked(QListWidgetItem *item);
+
+    void on_generate_btn_clicked();
+
+    void on_comboBox_program_type_currentIndexChanged(int index);
+
 private:
     Ui::MainWindow *ui;
     TreeDatabase database;
