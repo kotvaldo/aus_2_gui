@@ -439,6 +439,7 @@ void MainWindow::on_pushButton_3_clicked()
 void MainWindow::on_load_from_file_clicked()
 {
     database.LoadDataFromFile();
+    RefreshListByArea(ui->list_of_items, database.allAreas());
 }
 
 

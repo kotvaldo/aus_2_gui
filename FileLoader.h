@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KDTree.h"
 #include "Models.h"
 #include <algorithm>
 #include <iostream>
@@ -13,18 +14,16 @@ private:
 
     vector<Nehnutelnost*>& nehnutelnosti;
     vector<Parcela*>& parcely;
+    vector<Area*>& areas;
     std::vector<int>&idParcely;
     std::vector<int>&idNehnutelnost;
+    std::vector<int>&idAreas;
 
 public:
-    FileLoader(std::vector<int>& idNehnutelnost,  std::vector<int>& idParcely, vector<Nehnutelnost*>& nehnutelnosti, vector<Parcela*>& parcely) : idNehnutelnost(idNehnutelnost), idParcely(idParcely),nehnutelnosti(nehnutelnosti), parcely(parcely) {}
+    FileLoader(std::vector<int>& idNehnutelnost, std::vector<int>& idAreas, vector<int>& idParcely, vector<Nehnutelnost*>& nehnutelnosti, vector<Parcela*>& parcely, vector<Area*>& areas) : areas(areas),idAreas(idAreas),idNehnutelnost(idNehnutelnost), idParcely(idParcely),nehnutelnosti(nehnutelnosti), parcely(parcely) {}
 
     ~FileLoader() {
     }
-
-
-
-
 
 
 
@@ -45,9 +44,16 @@ public:
         }
         return idNehnutelnost.size() + 1;
     }
+    int getBiggerIDArea() {
+        if (idAreas.empty()) {
+            idAreas.push_back(1);
+        } else {
+            idAreas.push_back(idNehnutelnost.size() + 1);
+        }
+        return idAreas.size() + 1;
+    }
 
-
-    bool loadNehnutelnosti(const std::string& filename) {
+    bool loadNehnutelnosti(const std::string& filename,  GeneralKDTree<GPS, Nehnutelnost>& tree_nehnutelnost, GeneralKDTree<GPS, Area>& tree_area) {
         std::ifstream infile(filename);
         if (!infile) {
             std::cerr << "Unable to open file " << filename << std::endl;
@@ -72,7 +78,7 @@ public:
                 return false;
             }
 
-            int uid = std::stoi(uidStr);
+            int uid = getBiggerIDNehnutelnosti();
             double gpsX = std::stod(FileLoader::trim(gpsXStr));
             double gpsY = std::stod(FileLoader::trim(gpsYStr));
             char width = FileLoader::trim(widthStr)[0];
@@ -83,6 +89,10 @@ public:
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
             nehnutelnosti.push_back(nehnutelnost);
+            tree_nehnutelnost.insert(nehnutelnost, gps);
+            Area* a = new Area(getBiggerIDArea(), gps, nehnutelnost, nullptr);
+            areas.push_back(a);
+            tree_area.insert(a, gps);
         }
 
         infile.close();
@@ -90,7 +100,7 @@ public:
     }
 
 
-    bool loadParcely(const std::string& filename) {
+    bool loadParcely(const std::string& filename,  GeneralKDTree<GPS, Parcela>& tree_parcely, GeneralKDTree<GPS, Area>& tree_area) {
         std::ifstream infile(filename);
         if (!infile) {
             std::cerr << "Unable to open file " << filename << std::endl;
@@ -115,7 +125,7 @@ public:
                 return false;
             }
 
-            int uid = std::stoi(uidStr);
+            int uid = getBiggerUIDParcely();
             double gpsX = std::stod(FileLoader::trim(gpsXStr));
             double gpsY = std::stod(FileLoader::trim(gpsYStr));
             char width = FileLoader::trim(widthStr)[0];
@@ -126,6 +136,10 @@ public:
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Parcela* parcela = new Parcela(uid, gps, cisloParcely, popis);
             parcely.push_back(parcela);
+            tree_parcely.insert(parcela, gps);
+            Area* a = new Area(getBiggerIDArea(), gps, nullptr, parcela);
+            areas.push_back(a);
+            tree_area.insert(a, gps);
         }
 
         infile.close();

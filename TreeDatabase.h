@@ -503,22 +503,8 @@ public:
 
 
     void LoadDataFromFile() {
-        fileloader.loadNehnutelnosti(nehnutelnostiFile);
-        fileloader.loadParcely(parcelyFile);
-
-        for(Parcela* k : parcely) {
-            tree_parcela.insert(k, k->gps);
-            Area* a = new Area(this->getBiggerUIDArea(), k->gps, nullptr, k);
-            areas.push_back(a);
-            tree_area.insert(a, a->gps);
-        }
-
-        for(Nehnutelnost* k : nehnutelnosti) {
-            tree_nehnutelnost.insert(k, k->gps);
-            Area* a = new Area(this->getBiggerUIDArea(), k->gps, k, nullptr);
-            areas.push_back(a);
-            tree_area.insert(a, a->gps);
-        }
+        fileloader.loadNehnutelnosti(nehnutelnostiFile, tree_nehnutelnost, tree_area);
+        fileloader.loadParcely(parcelyFile, tree_parcela, tree_area);
     }
 
 
@@ -572,7 +558,7 @@ public:
 
 
 
-inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(2), tree_parcela(2), tree_area(2), fileloader(idNehnutelnost, idParcely, nehnutelnosti, parcely)
+inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(2), tree_parcela(2), tree_area(2), fileloader(idNehnutelnost,idArea, idParcely, nehnutelnosti, parcely, areas)
 {
 
 }
