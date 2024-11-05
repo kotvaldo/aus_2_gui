@@ -14,6 +14,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
    <widget class="QListWidget" name="list_of_items">
     <property name="geometry">
      <rect>
