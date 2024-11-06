@@ -11,50 +11,60 @@ public:
     virtual ~IComparable() = default;
 };
 
+#include <iostream>
+#include <ostream>
+
 class GPS : public IComparable<GPS> {
 public:
-    double x, y;
+    double x;
+    double y;
     char width;
     char length;
 
-    //prerobit na double
-    //pridat N a S
-
-
-    GPS(double x = 0, double y = 0, char width = 'N', char length = 'W') : x(x), y(y), width(width), length(length) {
+    GPS(double x = 0, double y = 0, char width = 'N', char length = 'W')
+        : x(x), y(y), width(width), length(length) {
         std::cout << "GPS initialized: " << *this << std::endl;
     }
 
-    GPS(const GPS& other) : x(other.x), y(other.y), width(other.width), length(other.length) {}
+    GPS(const GPS& other)
+        : x(other.x), y(other.y), width(other.width), length(other.length) {}
 
     int compare(const GPS& other, int cur_level) const override {
-        if (cur_level % 2 == 0) {
+        if (cur_level % 4 == 0) {
+            if (this->width < other.width) return -1;
+            if (this->width > other.width) return 1;
+            return 0;
+        } else if (cur_level % 4 == 1) {
+            if (this->length < other.length) return -1;
+            if (this->length > other.length) return 1;
+            return 0;
+        } else if (cur_level % 4 == 2) {
             if (this->x < other.x) return -1;
             if (this->x > other.x) return 1;
             return 0;
-        }
-        else {
+        } else if (cur_level % 4 == 3) {
             if (this->y < other.y) return -1;
             if (this->y > other.y) return 1;
             return 0;
         }
+        return 0;
     }
 
     bool equalsByKeys(const GPS& other) const override {
-        return this->x == other.x && this->y == other.y;
+        return this->x == other.x && this->y == other.y && this->width == other.width && this->length == other.length;
     }
 
     bool equals(const GPS& other) const override {
-        return this->x == other.x && this->y == other.y;
+        return this->x == other.x && this->y == other.y && this->width == other.width && this->length == other.length;
     }
 
-    friend ostream& operator<<(ostream& os, const GPS& gps) {
+    friend std::ostream& operator<<(std::ostream& os, const GPS& gps) {
         os << "(x: " << gps.x << ", y: " << gps.y
            << ", width: " << gps.width << ", length: " << gps.length << ")";
         return os;
     }
-
 };
+
 
 class Nehnutelnost : public IComparable<Nehnutelnost> {
 public:
@@ -80,19 +90,23 @@ public:
     }
 
     int compare(const Nehnutelnost& other, int cur_level) const override {
-        if (cur_level % 2 == 0) {
+        if (cur_level % 4 == 0) {
+            if (this->gps->width < other.gps->width) return -1;
+            if (this->gps->width > other.gps->width) return 1;
+        } else if (cur_level % 4 == 1) {
+            if (this->gps->length < other.gps->length) return -1;
+            if (this->gps->length > other.gps->length) return 1;
+        } else if (cur_level % 4 == 2) {
             if (this->gps->x < other.gps->x) return -1;
             if (this->gps->x > other.gps->x) return 1;
-            return 0;
-        }
-        else {
+        } else if (cur_level % 4 == 3) {
             if (this->gps->y < other.gps->y) return -1;
             if (this->gps->y > other.gps->y) return 1;
-            return 0;
         }
+        return 0;
     }
 
-    friend ostream& operator<<(ostream& os, const Nehnutelnost& nehnutelnost) {
+    friend std::ostream& operator<<(std::ostream& os, const Nehnutelnost& nehnutelnost) {
         os << "Nehnutelnost(uid: " << nehnutelnost.uid
            << ", GPS: " << *nehnutelnost.gps
            << ", Supisne cislo: " << (nehnutelnost.supisneCislo == -1 ? "N/A" : std::to_string(nehnutelnost.supisneCislo))
@@ -100,8 +114,6 @@ public:
         return os;
     }
 };
-
-
 
 class Parcela : public IComparable<Parcela> {
 public:
@@ -113,7 +125,6 @@ public:
     Parcela(int id, GPS* gpsCoord, int cislo = -1, const std::string& desc = "")
         : uid(id), gps(new GPS(*gpsCoord)), cisloParcely(cislo), popis(desc) {}
 
-    // Copy constructor for deep copy
     Parcela(const Parcela& other)
         : uid(other.uid), gps(new GPS(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis) {}
 
@@ -128,19 +139,23 @@ public:
     }
 
     int compare(const Parcela& other, int cur_level) const override {
-        if (cur_level % 2 == 0) {
+        if (cur_level % 4 == 0) {
+            if (this->gps->width < other.gps->width) return -1;
+            if (this->gps->width > other.gps->width) return 1;
+        } else if (cur_level % 4 == 1) {
+            if (this->gps->length < other.gps->length) return -1;
+            if (this->gps->length > other.gps->length) return 1;
+        } else if (cur_level % 4 == 2) {
             if (this->gps->x < other.gps->x) return -1;
             if (this->gps->x > other.gps->x) return 1;
-            return 0;
-        }
-        else {
+        } else if (cur_level % 4 == 3) {
             if (this->gps->y < other.gps->y) return -1;
             if (this->gps->y > other.gps->y) return 1;
-            return 0;
         }
+        return 0;
     }
 
-    friend ostream& operator<<(ostream& os, const Parcela& parcela) {
+    friend std::ostream& operator<<(std::ostream& os, const Parcela& parcela) {
         os << "Parcela(uid: " << parcela.uid
            << ", GPS: " << *parcela.gps
            << ", Cislo parcely: " << (parcela.cisloParcely == -1 ? "N/A" : std::to_string(parcela.cisloParcely))
@@ -148,7 +163,6 @@ public:
         return os;
     }
 };
-
 
 class Area : public IComparable<Area> {
 public:
@@ -172,16 +186,20 @@ public:
     }
 
     int compare(const Area& other, int cur_level) const override {
-        if (cur_level % 2 == 0) {
+        if (cur_level % 4 == 0) {
+            if (this->gps->width < other.gps->width) return -1;
+            if (this->gps->width > other.gps->width) return 1;
+        } else if (cur_level % 4 == 1) {
+            if (this->gps->length < other.gps->length) return -1;
+            if (this->gps->length > other.gps->length) return 1;
+        } else if (cur_level % 4 == 2) {
             if (this->gps->x < other.gps->x) return -1;
             if (this->gps->x > other.gps->x) return 1;
-            return 0;
-        }
-        else {
+        } else if (cur_level % 4 == 3) {
             if (this->gps->y < other.gps->y) return -1;
             if (this->gps->y > other.gps->y) return 1;
-            return 0;
         }
+        return 0;
     }
 
     bool equals(const Area& other) const override {
@@ -192,7 +210,7 @@ public:
         return this->gps->x == other.gps->x && this->gps->y == other.gps->y;
     }
 
-    friend ostream& operator<<(ostream& os, const Area& area) {
+    friend std::ostream& operator<<(std::ostream& os, const Area& area) {
         os << "Area(uid: " << area.uid << ", GPS: " << *area.gps;
         if (area.nehnutelnost) os << ", Nehnutelnost: " << *area.nehnutelnost;
         if (area.parcela) os << ", Parcela: " << *area.parcela;
@@ -200,6 +218,7 @@ public:
         return os;
     }
 };
+
 
 class TestClass : public IComparable<TestClass> {
 public:

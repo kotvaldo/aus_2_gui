@@ -337,7 +337,7 @@ public:
 
         return true;
     }
-    bool editNehnutelnost(int id, double newX1, double newY1, int newSupisneCislo, const std::string& newDescription) {
+    bool editNehnutelnost(int id, double newX1, double newY1, char newWidth, char newLength, int newSupisneCislo, const std::string& newDescription) {
         auto it = std::find_if(nehnutelnosti.begin(), nehnutelnosti.end(),
                                [id](Nehnutelnost* nehnutelnost) { return nehnutelnost->uid == id; });
 
@@ -347,7 +347,8 @@ public:
 
         Nehnutelnost* oldNehnutelnost = *it;
 
-        bool gpsChanged = (oldNehnutelnost->gps->x != newX1 || oldNehnutelnost->gps->y != newY1);
+        bool gpsChanged = (oldNehnutelnost->gps->x != newX1 || oldNehnutelnost->gps->y != newY1 ||
+                           oldNehnutelnost->gps->width != newWidth || oldNehnutelnost->gps->length != newLength);
 
         if (gpsChanged) {
             tree_nehnutelnost.removeNode(oldNehnutelnost);
@@ -364,6 +365,8 @@ public:
 
             oldNehnutelnost->gps->x = newX1;
             oldNehnutelnost->gps->y = newY1;
+            oldNehnutelnost->gps->width = newWidth;
+            oldNehnutelnost->gps->length = newLength;
 
             tree_nehnutelnost.insert(oldNehnutelnost, oldNehnutelnost->gps);
 
@@ -378,7 +381,7 @@ public:
         return true;
     }
 
-    bool editParcela(int id, double newX1, double newY1, int newCisloParcely, const std::string& newDescription) {
+    bool editParcela(int id, double newX1, double newY1, char newWidth, char newLength, int newCisloParcely, const std::string& newDescription) {
         auto it = std::find_if(parcely.begin(), parcely.end(),
                                [id](Parcela* parcela) { return parcela->uid == id; });
 
@@ -388,7 +391,8 @@ public:
 
         Parcela* oldParcela = *it;
 
-        bool gpsChanged = (oldParcela->gps->x != newX1 || oldParcela->gps->y != newY1);
+        bool gpsChanged = (oldParcela->gps->x != newX1 || oldParcela->gps->y != newY1 ||
+                           oldParcela->gps->width != newWidth || oldParcela->gps->length != newLength);
 
         if (gpsChanged) {
             tree_parcela.removeNode(oldParcela);
@@ -405,6 +409,8 @@ public:
 
             oldParcela->gps->x = newX1;
             oldParcela->gps->y = newY1;
+            oldParcela->gps->width = newWidth;
+            oldParcela->gps->length = newLength;
 
             tree_parcela.insert(oldParcela, oldParcela->gps);
 
@@ -419,10 +425,9 @@ public:
         return true;
     }
 
-
-    std::vector<Nehnutelnost*> findNehnutelnosti(double x1, double y1, double x2, double y2) {
-        GPS gps1(x1, y1);
-        GPS gps2(x2, y2);
+    std::vector<Nehnutelnost*> findNehnutelnosti(double x1, double y1, char width1, char length1, double x2, double y2, char width2, char length2) {
+        GPS gps1(x1, y1, width1, length1);
+        GPS gps2(x2, y2, width2, length2);
 
         std::vector<Nehnutelnost*> result1 = tree_nehnutelnost.find(&gps1);
         std::vector<Nehnutelnost*> result2 = tree_nehnutelnost.find(&gps2);
@@ -431,9 +436,9 @@ public:
         return result1;
     }
 
-    std::vector<Parcela*> findParcely(double x1, double y1, double x2, double y2) {
-        GPS gps1(x1, y1);
-        GPS gps2(x2, y2);
+    std::vector<Parcela*> findParcely(double x1, double y1, char width1, char length1, double x2, double y2, char width2, char length2) {
+        GPS gps1(x1, y1, width1, length1);
+        GPS gps2(x2, y2, width2, length2);
 
         std::vector<Parcela*> result1 = tree_parcela.find(&gps1);
         std::vector<Parcela*> result2 = tree_parcela.find(&gps2);
@@ -442,9 +447,9 @@ public:
         return result1;
     }
 
-    std::vector<Area*> findAreas(double x1, double y1, double x2, double y2) {
-        GPS gps1(x1, y1);
-        GPS gps2(x2, y2);
+    std::vector<Area*> findAreas(double x1, double y1, char width1, char length1, double x2, double y2, char width2, char length2) {
+        GPS gps1(x1, y1, width1, length1);
+        GPS gps2(x2, y2, width2, length2);
 
         std::vector<Area*> result1 = tree_area.find(&gps1);
         std::vector<Area*> result2 = tree_area.find(&gps2);
@@ -453,27 +458,19 @@ public:
         return result1;
     }
 
-    std::vector<Nehnutelnost*> findNehnutelnostiOnly (double x1, double y1) {
-        GPS gps1(x1, y1);
-
-        std::vector<Nehnutelnost*> result1 = tree_nehnutelnost.find(&gps1);
-
-        return result1;
+    std::vector<Nehnutelnost*> findNehnutelnostiOnly(double x1, double y1, char width, char length) {
+        GPS gps1(x1, y1, width, length);
+        return tree_nehnutelnost.find(&gps1);
     }
 
-    std::vector<Parcela*> findParcelyOnly(double x1, double y1) {
-        GPS gps1(x1, y1);
-
-        std::vector<Parcela*> result1 = tree_parcela.find(&gps1);
-        return result1;
+    std::vector<Parcela*> findParcelyOnly(double x1, double y1, char width, char length) {
+        GPS gps1(x1, y1, width, length);
+        return tree_parcela.find(&gps1);
     }
 
-    std::vector<Area*> findAreasOnly(double x1, double y1) {
-        GPS gps1(x1, y1);
-
-        std::vector<Area*> result1 = tree_area.find(&gps1);
-
-        return result1;
+    std::vector<Area*> findAreasOnly(double x1, double y1, char width, char length) {
+        GPS gps1(x1, y1, width, length);
+        return tree_area.find(&gps1);
     }
 
 
@@ -558,7 +555,7 @@ public:
 
 
 
-inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(2), tree_parcela(2), tree_area(2), fileloader(idNehnutelnost,idArea, idParcely, nehnutelnosti, parcely, areas)
+inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(4), tree_parcela(4), tree_area(4), fileloader(idNehnutelnost,idArea, idParcely, nehnutelnosti, parcely, areas)
 {
 
 }
