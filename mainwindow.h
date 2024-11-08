@@ -33,35 +33,16 @@ public:
 
 private slots:
 
-    void on_load_data_btn_clicked();
 
-    void on_add_parcel_btn_clicked();
 
-    void on_show_propert_btn_clicked();
 
-    void on_show_parcels_btn_clicked();
 
-    void on_show_areas_btn_clicked();
-
-    void on_edit_selected_btn_clicked();
-
-    void on_add_property_btn_clicked();
-
-    void on_refresh_btn_clicked();
 
     void on_clear_btn_clicked();
 
     void on_save_button_clicked();
 
     void on_delete_btn_clicked();
-
-    void on_show_duplicities_btn_clicked();
-
-    void on_pushButton_clicked();
-
-    void on_pushButton_2_clicked();
-
-    void on_pushButton_3_clicked();
 
     void on_load_from_file_clicked();
 
@@ -71,9 +52,32 @@ private slots:
 
     void on_comboBox_program_type_currentIndexChanged(int index);
 
+    void on_task1_btn_clicked();
+
+
+    void on_task2_btn_clicked();
+
+    void on_task3_btn_clicked();
+
+    void on_task4_btn_clicked();
+
+    void on_task5_btn_clicked();
+
+    void on_task6_btn_clicked();
+
+    void on_task8_btn_clicked();
+
+    void on_refresh_btn_clicked();
+
 private:
     Ui::MainWindow *ui;
     TreeDatabase database;
     ProgramType type;
+    void findProperties();
+    void findAreas();
+    void findParcely();
+    void addProperty();
+    void addParcel();
+    void editing_parameters();
 };
 #endif // MAINWINDOW_H

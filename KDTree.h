@@ -10,9 +10,9 @@
 #include <list>
 
 #define RESET   "\033[0m"
-#define GREEN   "\033[32m"  // Zelen�
-#define RED     "\033[31m"  // �erven�
-#define UNKNOWN     "\033[33m"  // �erven�
+#define GREEN   "\033[32m"
+#define RED     "\033[31m"
+#define UNKNOWN     "\033[33m"
 
 using namespace std;
 
@@ -39,6 +39,7 @@ public:
     vector<DataType*> find(KeyType* keys);
     DataType* insert(DataType* data, KeyType* keys);
     bool removeNode(DataType* data, KDNodeType* startNode = nullptr, int targetDimension = -1);
+    bool updateNode(DataType* oldData, KeyType* oldKeys, DataType* newData, KeyType* newKeys);
     size_t size() const;
     KDNodeType* accessRoot();
     bool hasLeftSon(KDNodeType* node);
@@ -58,7 +59,6 @@ private:
     KDNodeType* findNodeWithData(DataType* data, KDNodeType* startNode = nullptr);
     KDTreeNode<KeyType, DataType>* findNodeInRightSubtreeWithDimension(KDNodeType* node, DataType* data, int target_dimension);
     void reinsertNodesWithSameKey(KDNodeType* node);
-    bool removeNodeInRightSubtree(KDNodeType* startNode, DataType* data, int targetDimension);
 
     void clearProcessedNodes();
 
@@ -360,6 +360,25 @@ inline bool GeneralKDTree<KeyType, DataType>::removeNode(DataType* data, KDNodeT
     return true;
 }
 
+template<typename KeyType, typename DataType>
+inline bool GeneralKDTree<KeyType, DataType>::updateNode(DataType* oldData, KeyType* oldKeys, DataType* newData, KeyType* newKeys)
+{
+    KDNodeType* oldNode = findNodeWithData(oldData);
+
+    if (oldNode == nullptr) return false;
+
+    bool isKeyPartChanged = !oldData->equalsByKeys(*newData);
+
+    if (isKeyPartChanged) {
+        oldNode->_data = newData;
+    }
+    else {
+        removeNode(oldData);
+        insert(newData, newKeys);
+    }
+    return true;
+}
+
 
 
 
@@ -431,74 +450,7 @@ KDTreeNode<KeyType, DataType>* GeneralKDTree<KeyType, DataType>::findNodeInRight
 }
 
 
-template<typename KeyType, typename DataType>
-inline void GeneralKDTree<KeyType, DataType>::reinsertNodesWithSameKey(KDNodeType* node) {
-    if (node == nullptr || node->_right == nullptr) {
-        std::cout << "No right subtree for reinsertion." << std::endl;
-        return;
-    }
 
-    int target_dimension = node->_level % this->k;
-    KeyType* target_key = node->_keyPart;
-
-    std::stack<KDNodeType*> nodesToVisit;
-    std::unordered_map<KeyType*, DataType*> nodesToReinsert;
-
-    nodesToVisit.push(node->_right);
-
-    while (!nodesToVisit.empty()) {
-        KDNodeType* currentNode = nodesToVisit.top();
-        nodesToVisit.pop();
-
-        if (currentNode->_keyPart->compare(*target_key, target_dimension) <= 0) {
-            if (nodesToReinsert.find(currentNode->_keyPart) == nodesToReinsert.end()) {
-                nodesToReinsert[currentNode->_keyPart] = currentNode->_data;
-            }
-        }
-
-        int current_dimension = currentNode->_level % this->k;
-
-        if (current_dimension != target_dimension) {
-            if (currentNode->_left != nullptr) {
-                nodesToVisit.push(currentNode->_left);
-            }
-            if (currentNode->_right != nullptr) {
-                nodesToVisit.push(currentNode->_right);
-            }
-        }
-        else {
-            if (currentNode->_left != nullptr) {
-                nodesToVisit.push(currentNode->_left);
-            }
-        }
-    }
-
-    std::unordered_set<DataType*> reinsertedNodes;
-    for (const auto& [keyPart, data] : nodesToReinsert) {
-        if (!data || !keyPart) {
-            std::cout << RED << "Null data or keyPart encountered during removal, skipping." << RESET << std::endl;
-            continue;
-        }
-
-        if (reinsertedNodes.find(data) != reinsertedNodes.end()) {
-            std::cout << "Node with data " << *data << " already reinserted, skipping." << std::endl;
-            continue;
-        }
-
-        if (findNodeWithData(data, node) != nullptr) {
-            std::cout << "Node with data " << *data << " already exists, skipping reinsertion." << std::endl;
-            continue;
-        }
-
-        bool removed = removeNode(data, node, target_dimension);
-        if (removed) {
-            std::cout << "Node with data " << *data << " successfully removed." << std::endl;
-        }
-
-        this->insert(data, keyPart);
-        reinsertedNodes.insert(data);
-    }
-}
 
 
 template<typename KeyType, typename DataType>
@@ -750,3 +702,4 @@ void GeneralKDTree<KeyType, DataType>::reverseLevelOrderTraversal(std::function<
         func(current);
     }
 }
+

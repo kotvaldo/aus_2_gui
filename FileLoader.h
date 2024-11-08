@@ -33,7 +33,7 @@ public:
         } else {
             idParcely.push_back(idParcely.size() + 1);
         }
-        return idParcely.size() + 1;
+        return idParcely.size();
     }
 
     int getBiggerIDNehnutelnosti() {
@@ -42,7 +42,7 @@ public:
         } else {
             idNehnutelnost.push_back(idNehnutelnost.size() + 1);
         }
-        return idNehnutelnost.size() + 1;
+        return idNehnutelnost.size();
     }
     int getBiggerIDArea() {
         if (idAreas.empty()) {
@@ -50,7 +50,7 @@ public:
         } else {
             idAreas.push_back(idNehnutelnost.size() + 1);
         }
-        return idAreas.size() + 1;
+        return idAreas.size();
     }
 
     bool loadNehnutelnosti(const std::string& filename,  GeneralKDTree<GPS, Nehnutelnost>& tree_nehnutelnost, GeneralKDTree<GPS, Area>& tree_area) {
