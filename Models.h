@@ -31,15 +31,16 @@ public:
             if (this->width < other.width) return -1;
             if (this->width > other.width) return 1;
         } else if (cur_level % 4 == 1) {
-            if (this->length < other.length) return -1;
-            if (this->length > other.length) return 1;
-        } else if (cur_level % 4 == 2) {
             if (this->x < other.x) return -1;
             if (this->x > other.x) return 1;
+        } else if (cur_level % 4 == 2) {
+            if (this->length < other.length) return -1;
+            if (this->length > other.length) return 1;
         } else if (cur_level % 4 == 3) {
             if (this->y < other.y) return -1;
             if (this->y > other.y) return 1;
         }
+
         return 0;
     }
 
