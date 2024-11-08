@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->setupUi(this);
-    resize(1350, 780);
+    resize(1200, 780);
 
     ui->comboBox_program_type->addItem("Nehnutelosti");
     ui->comboBox_program_type->addItem("Parcely");
