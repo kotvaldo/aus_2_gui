@@ -23,12 +23,13 @@ struct BoundingBox {
 struct ParcelaParameters {
     int cisloParcely;
     std::string description;
+    int uid = -1;
 };
 
 struct NehnutelnostParameters {
     int supisneCislo;
     std::string description;
-
+    int uid = -1;
 };
 
 

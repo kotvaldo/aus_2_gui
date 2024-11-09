@@ -58,13 +58,27 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
     if (ret == QMessageBox::Yes) {
         bool success = false;
 
+        // Použite správne indexy pre width a length: UserRole + 6 a UserRole + 7
+        QString widthText = selectedItem->data(Qt::UserRole + 6).toString();
+        QString lengthText = selectedItem->data(Qt::UserRole + 7).toString();
+
+        char width = !widthText.isEmpty() ? widthText.toStdString()[0] : 'N';
+        char length = !lengthText.isEmpty() ? lengthText.toStdString()[0] : 'E';
+
+        GPSParameters gpsParams{
+            selectedItem->data(Qt::UserRole + 1).toDouble(),
+            selectedItem->data(Qt::UserRole + 2).toDouble(),
+            width,
+            length
+        };
+
         if (type == ProgramType::Area) {
             int uidArea = selectedItem->data(Qt::UserRole + 8).toInt();
-            success = database.deleteAreaRecord(uidArea);
+            success = database.deleteAreaRecord(uidArea, gpsParams);
         } else if (type == ProgramType::Nehnutelnosti) {
-            success = database.deleteNehnutelnostRecord(uid);
+            success = database.deleteNehnutelnostRecord(uid, gpsParams);
         } else if (type == ProgramType::Parcely) {
-            success = database.deleteParcelaRecord(uid);
+            success = database.deleteParcelaRecord(uid, gpsParams);
         }
 
         if (success) {
@@ -72,7 +86,7 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
 
             if (type == ProgramType::Area) {
                 ui->comboBox_program_type->setCurrentIndex(2);
-            } else if (type == ProgramType::Nehnutelnosti) {
+            } else if ( type == ProgramType::Nehnutelnosti) {
                 ui->comboBox_program_type->setCurrentIndex(0);
             } else if (type == ProgramType::Parcely) {
                 ui->comboBox_program_type->setCurrentIndex(1);
@@ -82,6 +96,7 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
         }
     }
 }
+
 
 
 
@@ -103,8 +118,8 @@ void MainWindow::RefreshListByNehnutelnosti(QListWidget* listWidget, const std::
         item->setData(Qt::UserRole + 2, QString::number(nehnutelnost->gps->y));
         item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);
         item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis));
-        item->setData(Qt::UserRole + 6, QString(nehnutelnost->gps->width));
-        item->setData(Qt::UserRole + 7, QString(nehnutelnost->gps->length));
+        item->setData(Qt::UserRole + 6, QChar(nehnutelnost->gps->width));  // Použitie QChar pre width
+        item->setData(Qt::UserRole + 7, QChar(nehnutelnost->gps->length)); // Použitie QChar pre length
 
         listWidget->addItem(item);
     }
@@ -123,7 +138,7 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
         if (area->nehnutelnost != nullptr) {
             Nehnutelnost* nehnutelnost = area->nehnutelnost;
             itemText = QString("Area ID: %1, {Nehnutelnost UID: %2, GPS: (%3, %4, %5, %6), Supisne Cislo: %7, Popis: %8}")
-                           .arg(area->uid)  // ID oblasti
+                           .arg(area->uid)
                            .arg(nehnutelnost->uid)
                            .arg(nehnutelnost->gps->x)
                            .arg(nehnutelnost->gps->y)
@@ -132,20 +147,21 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
                            .arg(nehnutelnost->supisneCislo)
                            .arg(QString::fromStdString(nehnutelnost->popis));
             item = new QListWidgetItem(itemText, listWidget);
+
             item->setData(Qt::UserRole, nehnutelnost->uid);
             item->setData(Qt::UserRole + 1, nehnutelnost->gps->x);
             item->setData(Qt::UserRole + 2, nehnutelnost->gps->y);
             item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);
             item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis));
             item->setData(Qt::UserRole + 5, true);  // true znamená Nehnutelnost
-            item->setData(Qt::UserRole + 6, QString(nehnutelnost->gps->width));
-            item->setData(Qt::UserRole + 7, QString(nehnutelnost->gps->length));
+            item->setData(Qt::UserRole + 6, QChar(nehnutelnost->gps->width));  // Použitie QChar pre width
+            item->setData(Qt::UserRole + 7, QChar(nehnutelnost->gps->length)); // Použitie QChar pre length
             item->setData(Qt::UserRole + 8, area->uid);
 
         } else if (area->parcela != nullptr) {
             Parcela* parcela = area->parcela;
             itemText = QString("Area ID: %1, {Parcela UID: %2, GPS: (%3, %4, %5, %6), Cislo Parcely: %7, Popis: %8}")
-                           .arg(area->uid)  // ID oblasti
+                           .arg(area->uid)
                            .arg(parcela->uid)
                            .arg(parcela->gps->x)
                            .arg(parcela->gps->y)
@@ -154,25 +170,27 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
                            .arg(parcela->cisloParcely)
                            .arg(QString::fromStdString(parcela->popis));
             item = new QListWidgetItem(itemText, listWidget);
+
             item->setData(Qt::UserRole, parcela->uid);
             item->setData(Qt::UserRole + 1, parcela->gps->x);
             item->setData(Qt::UserRole + 2, parcela->gps->y);
             item->setData(Qt::UserRole + 3, parcela->cisloParcely);
             item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->popis));
             item->setData(Qt::UserRole + 5, false);  // false znamená Parcela
-            item->setData(Qt::UserRole + 6, QString(parcela->gps->width));
-            item->setData(Qt::UserRole + 7, QString(parcela->gps->length));
+            item->setData(Qt::UserRole + 6, QChar(parcela->gps->width));  // Použitie QChar pre width
+            item->setData(Qt::UserRole + 7, QChar(parcela->gps->length)); // Použitie QChar pre length
             item->setData(Qt::UserRole + 8, area->uid);
-
         }
 
         if (item != nullptr) {
             listWidget->addItem(item);
         }
     }
+
     type = ProgramType::Area;
     ui->label_count->setText("Počet area: " + QString::number(areas.size()));
 }
+
 
 void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<Parcela*>& parcely) {
     listWidget->clear();
@@ -186,20 +204,22 @@ void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<
             .arg(parcela->cisloParcely)
             .arg(QString::fromStdString(parcela->popis));
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
+
         item->setData(Qt::UserRole, parcela->uid);
         item->setData(Qt::UserRole + 1, parcela->gps->x);
         item->setData(Qt::UserRole + 2, parcela->gps->y);
         item->setData(Qt::UserRole + 3, parcela->cisloParcely);
         item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->popis));
-        item->setData(Qt::UserRole + 6, QString(parcela->gps->width));
-        item->setData(Qt::UserRole + 7, QString(parcela->gps->length));
+        item->setData(Qt::UserRole + 6, QChar(parcela->gps->width));
+        item->setData(Qt::UserRole + 7, QChar(parcela->gps->length));
 
         listWidget->addItem(item);
     }
+
     type = ProgramType::Parcely;
     ui->label_count->setText("Počet parciel: " + QString::number(parcely.size()));
-
 }
+
 
 
 
@@ -217,6 +237,14 @@ void MainWindow::editing_parameters() {
 
     int uid = selectedItem->data(Qt::UserRole).toInt();
 
+    // Použitie správnych indexov pre width a length: UserRole + 6 a UserRole + 7
+    GPSParameters oldCoords{
+        selectedItem->data(Qt::UserRole + 1).toDouble(),
+        selectedItem->data(Qt::UserRole + 2).toDouble(),
+        selectedItem->data(Qt::UserRole + 6).toString().toStdString()[0],
+        selectedItem->data(Qt::UserRole + 7).toString().toStdString()[0]
+    };
+
     GPSParameters newCoords{
         ui->x1_edit->text().toDouble(),
         ui->y1_edit->text().toDouble(),
@@ -231,7 +259,7 @@ void MainWindow::editing_parameters() {
                 ui->new_number->text().toInt(),
                 ui->description->toPlainText().toStdString()
             };
-            if (database.editNehnutelnost(uid, newCoords, newParams)) {
+            if (database.editNehnutelnost(uid, oldCoords, newCoords, newParams)) {
                 RefreshListByArea(ui->list_of_items, database.allAreas());
             } else {
                 QMessageBox::warning(this, "Error", "Failed to edit Nehnutelnost!");
@@ -241,7 +269,7 @@ void MainWindow::editing_parameters() {
                 ui->new_number->text().toInt(),
                 ui->description->toPlainText().toStdString()
             };
-            if (database.editParcela(uid, newCoords, newParams)) {
+            if (database.editParcela(uid, oldCoords, newCoords, newParams)) {
                 RefreshListByArea(ui->list_of_items, database.allAreas());
             } else {
                 QMessageBox::warning(this, "Error", "Failed to edit Parcela!");
@@ -252,7 +280,7 @@ void MainWindow::editing_parameters() {
             ui->new_number->text().toInt(),
             ui->description->toPlainText().toStdString()
         };
-        if (database.editNehnutelnost(uid, newCoords, newParams)) {
+        if (database.editNehnutelnost(uid, oldCoords, newCoords, newParams)) {
             RefreshListByNehnutelnosti(ui->list_of_items, database.allNehnutelnosti());
         } else {
             QMessageBox::warning(this, "Error", "Failed to edit Nehnutelnost!");
@@ -262,13 +290,14 @@ void MainWindow::editing_parameters() {
             ui->new_number->text().toInt(),
             ui->description->toPlainText().toStdString()
         };
-        if (database.editParcela(uid, newCoords, newParams)) {
+        if (database.editParcela(uid, oldCoords, newCoords, newParams)) {
             RefreshListByParcel(ui->list_of_items, database.allParcely());
         } else {
             QMessageBox::warning(this, "Error", "Failed to edit Parcela!");
         }
     }
 }
+
 
 
 
@@ -451,6 +480,8 @@ void MainWindow::findParcely() {
     ui->label_count->setText("Počet nájdených parciel: " + QString::number(results.size()));
 }
 
+#include <QMessageBox>
+
 void MainWindow::addProperty() {
     GPSParameters coords1{
         ui->x1_edit->text().toDouble(),
@@ -466,22 +497,21 @@ void MainWindow::addProperty() {
         ui->description->toPlainText().toStdString()
     };
 
-    if (hasSecondCoordinates) {
-        GPSParameters coords2{
-            ui->x2_edit->text().toDouble(),
-            ui->y2_edit->text().toDouble(),
-            ui->comboBox_edit->currentText().toStdString()[0],
-            ui->comboBox_edit_2->currentText().toStdString()[0]
-        };
-
-        BoundingBox bbox{coords1, coords2};
-        database.addNehnutelnost(bbox, params);
-    } else {
-        database.addSingleNehnutelnost(coords1, params);
+    if (!hasSecondCoordinates) {
+        QMessageBox::warning(this, "Nedostatok údajov", "Prosím, zadajte všetky súradnice.");
+        return;
     }
 
-}
+    GPSParameters coords2{
+        ui->x2_edit->text().toDouble(),
+        ui->y2_edit->text().toDouble(),
+        ui->comboBox_edit->currentText().toStdString()[0],
+        ui->comboBox_edit_2->currentText().toStdString()[0]
+    };
 
+    BoundingBox bbox{coords1, coords2};
+    database.addNehnutelnost(bbox, params);
+}
 
 void MainWindow::addParcel() {
     GPSParameters coords1{
@@ -498,21 +528,22 @@ void MainWindow::addParcel() {
         ui->description->toPlainText().toStdString()
     };
 
-    if (hasSecondCoordinates) {
-        GPSParameters coords2{
-            ui->x2_edit->text().toDouble(),
-            ui->y2_edit->text().toDouble(),
-            ui->comboBox_edit->currentText().toStdString()[0],
-            ui->comboBox_edit_2->currentText().toStdString()[0]
-        };
-
-        BoundingBox bbox{coords1, coords2};
-        database.addParcela(bbox, params);
-    } else {
-        database.addSingleParcela(coords1, params);
+    if (!hasSecondCoordinates) {
+        QMessageBox::warning(this, "Nedostatok údajov", "Prosím, zadajte všetky súradnice.");
+        return;
     }
 
+    GPSParameters coords2{
+        ui->x2_edit->text().toDouble(),
+        ui->y2_edit->text().toDouble(),
+        ui->comboBox_edit->currentText().toStdString()[0],
+        ui->comboBox_edit_2->currentText().toStdString()[0]
+    };
+
+    BoundingBox bbox{coords1, coords2};
+    database.addParcela(bbox, params);
 }
+
 
 
 

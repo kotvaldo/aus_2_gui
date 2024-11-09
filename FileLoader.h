@@ -12,15 +12,12 @@
 class FileLoader {
 private:
 
-    vector<Nehnutelnost*>& nehnutelnosti;
-    vector<Parcela*>& parcely;
-    vector<Area*>& areas;
     std::vector<int>&idParcely;
     std::vector<int>&idNehnutelnost;
     std::vector<int>&idAreas;
 
 public:
-    FileLoader(std::vector<int>& idNehnutelnost, std::vector<int>& idAreas, vector<int>& idParcely, vector<Nehnutelnost*>& nehnutelnosti, vector<Parcela*>& parcely, vector<Area*>& areas) : areas(areas),idAreas(idAreas),idNehnutelnost(idNehnutelnost), idParcely(idParcely),nehnutelnosti(nehnutelnosti), parcely(parcely) {}
+    FileLoader(std::vector<int>& idNehnutelnost, std::vector<int>& idAreas, vector<int>& idParcely) : idAreas(idAreas),idNehnutelnost(idNehnutelnost), idParcely(idParcely) {}
 
     ~FileLoader() {
     }
@@ -88,10 +85,8 @@ public:
 
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
-            nehnutelnosti.push_back(nehnutelnost);
             tree_nehnutelnost.insert(nehnutelnost, gps);
             Area* a = new Area(getBiggerIDArea(), gps, nehnutelnost, nullptr);
-            areas.push_back(a);
             tree_area.insert(a, gps);
         }
 
@@ -135,10 +130,8 @@ public:
 
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Parcela* parcela = new Parcela(uid, gps, cisloParcely, popis);
-            parcely.push_back(parcela);
             tree_parcely.insert(parcela, gps);
             Area* a = new Area(getBiggerIDArea(), gps, nullptr, parcela);
-            areas.push_back(a);
             tree_area.insert(a, gps);
         }
 
