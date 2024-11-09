@@ -369,7 +369,7 @@ inline bool GeneralKDTree<KeyType, DataType>::updateNode(DataType* oldData, KeyT
 
     bool isKeyPartChanged = !oldData->equalsByKeys(*newData);
 
-    if (isKeyPartChanged) {
+    if (!isKeyPartChanged) {
         oldNode->_data = newData;
     }
     else {
@@ -378,6 +378,7 @@ inline bool GeneralKDTree<KeyType, DataType>::updateNode(DataType* oldData, KeyT
     }
     return true;
 }
+
 
 
 

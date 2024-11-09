@@ -128,36 +128,26 @@ public:
         }
 
         Nehnutelnost* oldNehnutelnost = *it;
-        bool coordsChanged = oldNehnutelnost->gps->x != newCoords.x || oldNehnutelnost->gps->y != newCoords.y ||
-                             oldNehnutelnost->gps->width != newCoords.width || oldNehnutelnost->gps->length != newCoords.length;
+        GPS* newGPS = new GPS(newCoords.x, newCoords.y, newCoords.width, newCoords.length);
+        Nehnutelnost* newNehnutelnost = new Nehnutelnost(id, newGPS, params.supisneCislo, params.description);
 
-        if (coordsChanged) {
-            GPS* newGPS = new GPS(newCoords.x, newCoords.y, newCoords.width, newCoords.length);
+        tree_nehnutelnost.updateNode(oldNehnutelnost, oldNehnutelnost->gps, newNehnutelnost, newGPS);
 
+        auto areaIt = std::find_if(areas.begin(), areas.end(), [&](Area* area) {
+            return area->nehnutelnost == oldNehnutelnost;
+        });
+        Area* oldArea = nullptr;
+        if (areaIt != areas.end()) {
+            oldArea = *areaIt;
+            Area* newArea = new Area(oldArea->uid, newGPS, newNehnutelnost, nullptr);
+            tree_area.updateNode(oldArea, oldArea->gps, newArea, newGPS);
 
-            for (auto areaIt = areas.begin(); areaIt != areas.end();) {
-                Area* area = *areaIt;
-                if (area->nehnutelnost && area->nehnutelnost->uid == id) {
-                    tree_area.removeNode(area);
-                    areaIt = areas.erase(areaIt);
-                } else {
-                    ++areaIt;
-                }
-            }
-
-            tree_nehnutelnost.removeNode(oldNehnutelnost);
-            oldNehnutelnost->gps = newGPS;
-            tree_nehnutelnost.insert(oldNehnutelnost, newGPS);
-
-
-            Area* newArea = new Area(getBiggerUIDArea(), newGPS, oldNehnutelnost, nullptr);
-            tree_area.insert(newArea, newGPS);
+            areas.erase(areaIt);
             areas.push_back(newArea);
         }
 
-        oldNehnutelnost->supisneCislo = params.supisneCislo;
-        oldNehnutelnost->popis = params.description;
-
+        nehnutelnosti.erase(it);
+        nehnutelnosti.push_back(newNehnutelnost);
         return true;
     }
 
@@ -170,36 +160,30 @@ public:
         }
 
         Parcela* oldParcela = *it;
-        bool coordsChanged = oldParcela->gps->x != newCoords.x || oldParcela->gps->y != newCoords.y ||
-                             oldParcela->gps->width != newCoords.width || oldParcela->gps->length != newCoords.length;
+        GPS* newGPS = new GPS(newCoords.x, newCoords.y, newCoords.width, newCoords.length);
+        Parcela* newParcela = new Parcela(id, newGPS, params.cisloParcely, params.description);
 
-        if (coordsChanged) {
-            GPS* newGPS = new GPS(newCoords.x, newCoords.y, newCoords.width, newCoords.length);
+        tree_parcela.updateNode(oldParcela, oldParcela->gps, newParcela, newGPS);
 
-            for (auto areaIt = areas.begin(); areaIt != areas.end();) {
-                Area* area = *areaIt;
-                if (area->parcela && area->parcela->uid == id) {
-                    tree_area.removeNode(area);
-                    areaIt = areas.erase(areaIt);
-                } else {
-                    ++areaIt;
-                }
-            }
+        auto areaIt = std::find_if(areas.begin(), areas.end(), [&](Area* area) {
+            return area->parcela == oldParcela;
+        });
+        Area* oldArea = nullptr;
+        if (areaIt != areas.end()) {
+            oldArea = *areaIt;
+            Area* newArea = new Area(oldArea->uid, newGPS, nullptr, newParcela);
+            tree_area.updateNode(oldArea, oldArea->gps, newArea, newGPS);
 
-             tree_parcela.removeNode(oldParcela);
-            oldParcela->gps = newGPS;
-            tree_parcela.insert(oldParcela, newGPS);
-
-            Area* newArea = new Area(getBiggerUIDArea(), newGPS, nullptr, oldParcela);
-            tree_area.insert(newArea, newGPS);
+            areas.erase(areaIt);
             areas.push_back(newArea);
         }
 
-        oldParcela->cisloParcely = params.cisloParcely;
-        oldParcela->popis = params.description;
-
+        parcely.erase(it);
+        parcely.push_back(newParcela);
         return true;
     }
+
+
 
 
 
