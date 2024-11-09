@@ -469,12 +469,39 @@ public:
     }
 
 
-
     void clearAllData() {
+        auto allAreas = this->allAreas();
+
         tree_area.clear();
         tree_nehnutelnost.clear();
         tree_parcela.clear();
 
+        for (Area*& area : allAreas) {
+            if (area != nullptr) {
+
+                if (area->nehnutelnost != nullptr) {
+                    if (area->nehnutelnost->gps != nullptr) {
+                        delete area->nehnutelnost->gps;
+                        area->nehnutelnost->gps = nullptr;
+                    }
+                    delete area->nehnutelnost;
+                    area->nehnutelnost = nullptr;
+                }
+
+
+                if (area->parcela != nullptr) {
+                    if (area->parcela->gps != nullptr) {
+                        delete area->parcela->gps;
+                        area->parcela->gps = nullptr;
+                    }
+                    delete area->parcela;
+                    area->parcela = nullptr;
+                }
+
+                delete area;
+                area = nullptr;
+            }
+        }
 
         idArea.clear();
         idNehnutelnost.clear();
