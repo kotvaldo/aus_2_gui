@@ -6,7 +6,6 @@
 #include <stack>
 #include <queue>
 #include <functional>
-#include <unordered_set>
 #include <list>
 
 #define RESET   "\033[0m"
@@ -59,10 +58,7 @@ private:
     KDNodeType* findNodeWithData(DataType* data, KDNodeType* startNode = nullptr);
     KDTreeNode<KeyType, DataType>* findNodeInRightSubtreeWithDimension(KDNodeType* node, DataType* data, int target_dimension);
     void reinsertNodesWithSameKey(KDNodeType* node);
-
     void clearProcessedNodes();
-
-    std::unordered_set<KDNodeType*> processedNodes;
 };
 
 
@@ -571,11 +567,6 @@ inline KDTreeNode<KeyType, DataType>* GeneralKDTree<KeyType, DataType>::findMinI
 }
 
 
-template<typename KeyType, typename DataType>
-inline void GeneralKDTree<KeyType, DataType>::clearProcessedNodes()
-{
-    processedNodes.clear();
-}
 
 
 template<typename KeyType, typename DataType>

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "Area.h"
+#include "GPS.h"
 #include "KDTree.h"
-#include "Models.h"
+#include "Nehnutelnost.h"
 #include <algorithm>
 #include <iostream>
 #include <vector>

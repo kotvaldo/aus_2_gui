@@ -22,7 +22,7 @@
      <rect>
       <x>50</x>
       <y>430</y>
-      <width>1081</width>
+      <width>821</width>
       <height>301</height>
      </rect>
     </property>
@@ -310,7 +310,7 @@
     <property name="geometry">
      <rect>
       <x>940</x>
-      <y>50</y>
+      <y>30</y>
       <width>201</width>
       <height>291</height>
      </rect>
@@ -531,6 +531,16 @@
      </property>
     </widget>
    </widget>
+   <widget class="QListWidget" name="listWidget_prekryv">
+    <property name="geometry">
+     <rect>
+      <x>900</x>
+      <y>430</y>
+      <width>371</width>
+      <height>241</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -538,7 +548,7 @@
      <x>0</x>
      <y>0</y>
      <width>1299</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAus_semestralka">

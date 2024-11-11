@@ -54,7 +54,6 @@ private slots:
 
     void on_task1_btn_clicked();
 
-
     void on_task2_btn_clicked();
 
     void on_task3_btn_clicked();

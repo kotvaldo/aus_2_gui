@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "Models.h"
 #include <QMessageBox>
 
 
@@ -104,22 +103,25 @@ void MainWindow::RefreshListByNehnutelnosti(QListWidget* listWidget, const std::
     listWidget->clear();
     for (Nehnutelnost* nehnutelnost : nehnutelnosti) {
         QString itemText = QString("Nehnutelnost UID: %1, {GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7}")
-        .arg(nehnutelnost->uid)
-            .arg(nehnutelnost->gps->x)
-            .arg(nehnutelnost->gps->y)
-            .arg(nehnutelnost->gps->width)
-            .arg(nehnutelnost->gps->length)
-            .arg(nehnutelnost->supisneCislo)
-            .arg(QString::fromStdString(nehnutelnost->popis));
+        .arg(nehnutelnost->getUid())
+            .arg(nehnutelnost->getGps()->getX())
+            .arg(nehnutelnost->getGps()->getY())
+            .arg(nehnutelnost->getGps()->getWidth())
+            .arg(nehnutelnost->getGps()->getLength())
+            .arg(nehnutelnost->getSupisneCislo())
+            .arg(QString::fromStdString(nehnutelnost->getPopis()));
+
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
 
-        item->setData(Qt::UserRole, nehnutelnost->uid);
-        item->setData(Qt::UserRole + 1, QString::number(nehnutelnost->gps->x));
-        item->setData(Qt::UserRole + 2, QString::number(nehnutelnost->gps->y));
-        item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);
-        item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis));
-        item->setData(Qt::UserRole + 6, QChar(nehnutelnost->gps->width));  // Použitie QChar pre width
-        item->setData(Qt::UserRole + 7, QChar(nehnutelnost->gps->length)); // Použitie QChar pre length
+
+        item->setData(Qt::UserRole, nehnutelnost->getUid());
+        item->setData(Qt::UserRole + 1, nehnutelnost->getGps()->getX());
+        item->setData(Qt::UserRole + 2, nehnutelnost->getGps()->getY());
+        item->setData(Qt::UserRole + 3, nehnutelnost->getSupisneCislo());
+        item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->getPopis()));
+        item->setData(Qt::UserRole + 6, QChar(nehnutelnost->getGps()->getWidth()));
+        item->setData(Qt::UserRole + 7, QChar(nehnutelnost->getGps()->getLength()));
+        item->setData(Qt::UserRole + 9, QVariant::fromValue(reinterpret_cast<void*>(nehnutelnost)));
 
         listWidget->addItem(item);
     }
@@ -135,51 +137,55 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
         QString itemText;
         QListWidgetItem* item = nullptr;
 
-        if (area->nehnutelnost != nullptr) {
-            Nehnutelnost* nehnutelnost = area->nehnutelnost;
+        if (area->getNehnutelnost() != nullptr) {
+            Nehnutelnost* nehnutelnost = area->getNehnutelnost();
             itemText = QString("Area ID: %1, {Nehnutelnost UID: %2, GPS: (%3, %4, %5, %6), Supisne Cislo: %7, Popis: %8}")
-                           .arg(area->uid)
-                           .arg(nehnutelnost->uid)
-                           .arg(nehnutelnost->gps->x)
-                           .arg(nehnutelnost->gps->y)
-                           .arg(nehnutelnost->gps->width)
-                           .arg(nehnutelnost->gps->length)
-                           .arg(nehnutelnost->supisneCislo)
-                           .arg(QString::fromStdString(nehnutelnost->popis));
+                           .arg(area->getUid())
+                           .arg(nehnutelnost->getUid())
+                           .arg(nehnutelnost->getGps()->getX())
+                           .arg(nehnutelnost->getGps()->getY())
+                           .arg(nehnutelnost->getGps()->getWidth())
+                           .arg(nehnutelnost->getGps()->getLength())
+                           .arg(nehnutelnost->getSupisneCislo())
+                           .arg(QString::fromStdString(nehnutelnost->getPopis()));
+
             item = new QListWidgetItem(itemText, listWidget);
 
-            item->setData(Qt::UserRole, nehnutelnost->uid);
-            item->setData(Qt::UserRole + 1, nehnutelnost->gps->x);
-            item->setData(Qt::UserRole + 2, nehnutelnost->gps->y);
-            item->setData(Qt::UserRole + 3, nehnutelnost->supisneCislo);
-            item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->popis));
+            item->setData(Qt::UserRole, nehnutelnost->getUid());
+            item->setData(Qt::UserRole + 1, nehnutelnost->getGps()->getX());
+            item->setData(Qt::UserRole + 2, nehnutelnost->getGps()->getY());
+            item->setData(Qt::UserRole + 3, nehnutelnost->getSupisneCislo());
+            item->setData(Qt::UserRole + 4, QString::fromStdString(nehnutelnost->getPopis()));
             item->setData(Qt::UserRole + 5, true);  // true znamená Nehnutelnost
-            item->setData(Qt::UserRole + 6, QChar(nehnutelnost->gps->width));  // Použitie QChar pre width
-            item->setData(Qt::UserRole + 7, QChar(nehnutelnost->gps->length)); // Použitie QChar pre length
-            item->setData(Qt::UserRole + 8, area->uid);
+            item->setData(Qt::UserRole + 6, QChar(nehnutelnost->getGps()->getWidth()));
+            item->setData(Qt::UserRole + 7, QChar(nehnutelnost->getGps()->getLength()));
+            item->setData(Qt::UserRole + 8, area->getUid());
+            item->setData(Qt::UserRole + 9, QVariant::fromValue(reinterpret_cast<void*>(nehnutelnost)));
 
-        } else if (area->parcela != nullptr) {
-            Parcela* parcela = area->parcela;
+        } else if (area->getParcela() != nullptr) {
+            Parcela* parcela = area->getParcela();
             itemText = QString("Area ID: %1, {Parcela UID: %2, GPS: (%3, %4, %5, %6), Cislo Parcely: %7, Popis: %8}")
-                           .arg(area->uid)
-                           .arg(parcela->uid)
-                           .arg(parcela->gps->x)
-                           .arg(parcela->gps->y)
-                           .arg(parcela->gps->width)
-                           .arg(parcela->gps->length)
-                           .arg(parcela->cisloParcely)
-                           .arg(QString::fromStdString(parcela->popis));
+                           .arg(area->getUid())
+                           .arg(parcela->getUid())
+                           .arg(parcela->getGps()->getX())
+                           .arg(parcela->getGps()->getY())
+                           .arg(parcela->getGps()->getWidth())
+                           .arg(parcela->getGps()->getLength())
+                           .arg(parcela->getCisloParcely())
+                           .arg(QString::fromStdString(parcela->getPopis()));
+
             item = new QListWidgetItem(itemText, listWidget);
 
-            item->setData(Qt::UserRole, parcela->uid);
-            item->setData(Qt::UserRole + 1, parcela->gps->x);
-            item->setData(Qt::UserRole + 2, parcela->gps->y);
-            item->setData(Qt::UserRole + 3, parcela->cisloParcely);
-            item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->popis));
+            item->setData(Qt::UserRole, parcela->getUid());
+            item->setData(Qt::UserRole + 1, parcela->getGps()->getX());
+            item->setData(Qt::UserRole + 2, parcela->getGps()->getY());
+            item->setData(Qt::UserRole + 3, parcela->getCisloParcely());
+            item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->getPopis()));
             item->setData(Qt::UserRole + 5, false);  // false znamená Parcela
-            item->setData(Qt::UserRole + 6, QChar(parcela->gps->width));  // Použitie QChar pre width
-            item->setData(Qt::UserRole + 7, QChar(parcela->gps->length)); // Použitie QChar pre length
-            item->setData(Qt::UserRole + 8, area->uid);
+            item->setData(Qt::UserRole + 6, QChar(parcela->getGps()->getWidth()));
+            item->setData(Qt::UserRole + 7, QChar(parcela->getGps()->getLength()));
+            item->setData(Qt::UserRole + 8, area->getUid());
+            item->setData(Qt::UserRole + 9, QVariant::fromValue(reinterpret_cast<void*>(parcela)));
         }
 
         if (item != nullptr) {
@@ -192,26 +198,31 @@ void MainWindow::RefreshListByArea(QListWidget* listWidget, const std::vector<Ar
 }
 
 
+
 void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<Parcela*>& parcely) {
     listWidget->clear();
     for (Parcela* parcela : parcely) {
         QString itemText = QString("Parcela UID: %1, {GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7}")
-        .arg(parcela->uid)
-            .arg(parcela->gps->x)
-            .arg(parcela->gps->y)
-            .arg(parcela->gps->width)
-            .arg(parcela->gps->length)
-            .arg(parcela->cisloParcely)
-            .arg(QString::fromStdString(parcela->popis));
+        .arg(parcela->getUid())
+            .arg(parcela->getGps()->getX())
+            .arg(parcela->getGps()->getY())
+            .arg(parcela->getGps()->getWidth())
+            .arg(parcela->getGps()->getLength())
+            .arg(parcela->getCisloParcely())
+            .arg(QString::fromStdString(parcela->getPopis()));
+
         QListWidgetItem* item = new QListWidgetItem(itemText, listWidget);
 
-        item->setData(Qt::UserRole, parcela->uid);
-        item->setData(Qt::UserRole + 1, parcela->gps->x);
-        item->setData(Qt::UserRole + 2, parcela->gps->y);
-        item->setData(Qt::UserRole + 3, parcela->cisloParcely);
-        item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->popis));
-        item->setData(Qt::UserRole + 6, QChar(parcela->gps->width));
-        item->setData(Qt::UserRole + 7, QChar(parcela->gps->length));
+        item->setData(Qt::UserRole, parcela->getUid());
+        item->setData(Qt::UserRole + 1, parcela->getGps()->getX());
+        item->setData(Qt::UserRole + 2, parcela->getGps()->getY());
+        item->setData(Qt::UserRole + 3, parcela->getCisloParcely());
+        item->setData(Qt::UserRole + 4, QString::fromStdString(parcela->getPopis()));
+        item->setData(Qt::UserRole + 6, QChar(parcela->getGps()->getWidth()));
+        item->setData(Qt::UserRole + 7, QChar(parcela->getGps()->getLength()));
+        item->setData(Qt::UserRole + 8, parcela->getUid());
+        item->setData(Qt::UserRole + 9, QVariant::fromValue(reinterpret_cast<void*>(parcela)));
+
 
         listWidget->addItem(item);
     }
@@ -219,7 +230,6 @@ void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<
     type = ProgramType::Parcely;
     ui->label_count->setText("Počet parciel: " + QString::number(parcely.size()));
 }
-
 
 
 
@@ -372,19 +382,85 @@ void MainWindow::on_load_from_file_clicked()
 
 }
 
-void MainWindow::on_list_of_items_itemClicked(QListWidgetItem *item)
+
+
+void MainWindow::on_list_of_items_itemClicked(QListWidgetItem* item)
 {
-    this->ui->x1_edit->setText(QString::number(item->data(Qt::UserRole + 1).toDouble()));
-    this->ui->y1_edit->setText(QString::number(item->data(Qt::UserRole + 2).toDouble()));
+    ui->x1_edit->setText(QString::number(item->data(Qt::UserRole + 1).toDouble()));
+    ui->y1_edit->setText(QString::number(item->data(Qt::UserRole + 2).toDouble()));
+    ui->new_number->setText(item->data(Qt::UserRole + 3).toString());
+    ui->description->setText(item->data(Qt::UserRole + 4).toString());
+    ui->comboBox_edit->setCurrentText(item->data(Qt::UserRole + 6).toString());
+    ui->comboBox_edit_2->setCurrentText(item->data(Qt::UserRole + 7).toString());
 
-    this->ui->new_number->setText(item->data(Qt::UserRole + 3).toString());
-    this->ui->description->setText(item->data(Qt::UserRole + 4).toString());
+    ui->listWidget_prekryv->clear();
 
-    this->ui->comboBox_edit->setCurrentText(item->data(Qt::UserRole + 6).toString());
-    this->ui->comboBox_edit_2->setCurrentText(item->data(Qt::UserRole + 7).toString());
-
-
+    if (type == ProgramType::Nehnutelnosti) {
+        Nehnutelnost* nehnutelnost = reinterpret_cast<Nehnutelnost*>(item->data(Qt::UserRole + 9).value<void*>());
+        if (nehnutelnost) {
+            for (const auto& parcela : nehnutelnost->getParcely()) {
+                QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
+                .arg(parcela->getUid())
+                    .arg(parcela->getGps()->getX())
+                    .arg(parcela->getGps()->getY())
+                    .arg(parcela->getGps()->getWidth())
+                    .arg(parcela->getGps()->getLength())
+                    .arg(parcela->getCisloParcely())
+                    .arg(QString::fromStdString(parcela->getPopis()));
+                ui->listWidget_prekryv->addItem(itemText);
+            }
+        }
+    } else if (type == ProgramType::Parcely) {
+        Parcela* parcela = reinterpret_cast<Parcela*>(item->data(Qt::UserRole + 9).value<void*>());
+        if (parcela) {
+            for (const auto& nehnutelnost : parcela->getNehnutelnosti()) {
+                QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
+                .arg(nehnutelnost->getUid())
+                    .arg(nehnutelnost->getGps()->getX())
+                    .arg(nehnutelnost->getGps()->getY())
+                    .arg(nehnutelnost->getGps()->getWidth())
+                    .arg(nehnutelnost->getGps()->getLength())
+                    .arg(nehnutelnost->getSupisneCislo())
+                    .arg(QString::fromStdString(nehnutelnost->getPopis()));
+                ui->listWidget_prekryv->addItem(itemText);
+            }
+        }
+    } else if (type == ProgramType::Area) {
+        bool isNehnutelnost = item->data(Qt::UserRole + 5).toBool();
+        if (isNehnutelnost) {
+            Nehnutelnost* nehnutelnost = reinterpret_cast<Nehnutelnost*>(item->data(Qt::UserRole + 9).value<void*>());
+            if (nehnutelnost) {
+                for (const auto& parcela : nehnutelnost->getParcely()) {
+                    QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
+                    .arg(parcela->getUid())
+                        .arg(parcela->getGps()->getX())
+                        .arg(parcela->getGps()->getY())
+                        .arg(parcela->getGps()->getWidth())
+                        .arg(parcela->getGps()->getLength())
+                        .arg(parcela->getCisloParcely())
+                        .arg(QString::fromStdString(parcela->getPopis()));
+                    ui->listWidget_prekryv->addItem(itemText);
+                }
+            }
+        } else {
+            Parcela* parcela = reinterpret_cast<Parcela*>(item->data(Qt::UserRole + 9).value<void*>());
+            if (parcela) {
+                for (const auto& nehnutelnost : parcela->getNehnutelnosti()) {
+                    QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
+                    .arg(nehnutelnost->getUid())
+                        .arg(nehnutelnost->getGps()->getX())
+                        .arg(nehnutelnost->getGps()->getY())
+                        .arg(nehnutelnost->getGps()->getWidth())
+                        .arg(nehnutelnost->getGps()->getLength())
+                        .arg(nehnutelnost->getSupisneCislo())
+                        .arg(QString::fromStdString(nehnutelnost->getPopis()));
+                    ui->listWidget_prekryv->addItem(itemText);
+                }
+            }
+        }
+    }
 }
+
 
 
 void MainWindow::findProperties() {

@@ -1,7 +1,6 @@
 #pragma once
 #include "FileLoader.h"
 #include "KDTree.h"
-#include "Models.h"
 #include "Parameters.h"
 
 #include <math.h>
@@ -53,10 +52,21 @@ public:
         Nehnutelnost* nehnutelnost1 = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps1, params.supisneCislo, params.description);
         Nehnutelnost* nehnutelnost2 = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps2, params.supisneCislo, params.description);
 
+        vector<Parcela*> parcely_prekr1 = tree_parcela.find(gps1);
+        vector<Parcela*> parcely_prekr2 = tree_parcela.find(gps2);
+
+        for (Parcela* p : parcely_prekr1) {
+            nehnutelnost1->addParcela(p);
+            p->addNehnutelnost(nehnutelnost1);
+        }
+
+        for (Parcela* p : parcely_prekr2) {
+            nehnutelnost2->addParcela(p);
+            p->addNehnutelnost(nehnutelnost2);
+        }
 
         tree_nehnutelnost.insert(nehnutelnost1, gps1);
         tree_nehnutelnost.insert(nehnutelnost2, gps2);
-
         Area* area1 = new Area(getBiggerUIDArea(), gps1, nehnutelnost1, nullptr);
         Area* area2 = new Area(getBiggerUIDArea(), gps2, nehnutelnost2, nullptr);
 
@@ -70,6 +80,12 @@ public:
         GPS* gps1 = new GPS(coords.x, coords.y, coords.width, coords.length);
         Nehnutelnost* nehnutelnost1 = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps1, params.supisneCislo, params.description);
 
+        vector<Parcela*> parcely_prekr = tree_parcela.find(gps1);
+
+
+        for(Parcela* p : parcely_prekr) {
+            nehnutelnost1->addParcela(p);
+        }
         tree_nehnutelnost.insert(nehnutelnost1, gps1);
 
         Area* area1 = new Area(getBiggerUIDArea(), gps1, nehnutelnost1, nullptr);
@@ -83,6 +99,18 @@ public:
         Parcela* parcela1 = new Parcela(getBiggerUIDParcely(), gps1, params.cisloParcely, params.description);
         Parcela* parcela2 = new Parcela(getBiggerUIDParcely(), gps2, params.cisloParcely, params.description);
 
+        vector<Nehnutelnost*> nehnutelnost_prekr1 = tree_nehnutelnost.find(gps1);
+        vector<Nehnutelnost*> nehnutelnost_prekr2 = tree_nehnutelnost.find(gps2);
+
+        for (Nehnutelnost* n : nehnutelnost_prekr1) {
+            parcela1->addNehnutelnost(n);
+            n->addParcela(parcela1);
+        }
+
+        for (Nehnutelnost* n : nehnutelnost_prekr2) {
+            parcela2->addNehnutelnost(n);
+            n->addParcela(parcela2);
+        }
 
         tree_parcela.insert(parcela1, gps1);
         tree_parcela.insert(parcela2, gps2);
@@ -90,14 +118,21 @@ public:
         Area* area1 = new Area(getBiggerUIDArea(), gps1, nullptr, parcela1);
         Area* area2 = new Area(getBiggerUIDArea(), gps2, nullptr, parcela2);
 
-
         tree_area.insert(area1, gps1);
         tree_area.insert(area2, gps2);
     }
 
+
     void addSingleParcela(const GPSParameters& coords, const ParcelaParameters& params) {
         GPS* gps1 = new GPS(coords.x, coords.y, coords.width, coords.length);
         Parcela* parcela1 = new Parcela(getBiggerUIDParcely(), gps1, params.cisloParcely, params.description);
+        vector<Nehnutelnost*> nehnutelnost_prekr1 = tree_nehnutelnost.find(gps1);
+
+        for (Nehnutelnost* n : nehnutelnost_prekr1) {
+            parcela1->addNehnutelnost(n);
+            n->addParcela(parcela1);
+        }
+
 
         tree_parcela.insert(parcela1, gps1);
 
@@ -112,20 +147,16 @@ public:
         vector<Nehnutelnost*> nehnutelnost_dup = tree_nehnutelnost.find(&oldGPS);
         Nehnutelnost* oldNehnutelnost = nullptr;
         for (Nehnutelnost* n : nehnutelnost_dup) {
-            if (n->uid == id) {
+            if (n->getUid() == id) {
                 oldNehnutelnost = n;
                 break;
             }
         }
 
-
-
-
-
         vector<Area*> areasDup = tree_area.find(&oldGPS);
         Area* oldArea = nullptr;
         for (Area* a : areasDup) {
-            if (a->nehnutelnost == oldNehnutelnost) {
+            if (a->getNehnutelnost() == oldNehnutelnost) {
                 oldArea = a;
                 break;
             }
@@ -136,10 +167,21 @@ public:
         Nehnutelnost* newNehnutelnost = new Nehnutelnost(id, newGPS, params.supisneCislo, params.description);
         tree_nehnutelnost.updateNode(oldNehnutelnost, &oldGPS, newNehnutelnost, newGPS);
 
-        Area* newArea = new Area(oldArea->uid, newGPS, newNehnutelnost, nullptr);
+        Area* newArea = new Area(oldArea->getUid(), newGPS, newNehnutelnost, nullptr);
         tree_area.updateNode(oldArea, &oldGPS, newArea, newGPS);
 
+        if (!newGPS->equalsByKeys(oldGPS)) {
+            oldNehnutelnost->clearParcely();
 
+            vector<Parcela*> relatedParcely = tree_parcela.find(newGPS);
+
+            for (Parcela* parcela : relatedParcely) {
+                if (parcela) {
+                    parcela->addNehnutelnost(newNehnutelnost);
+                    newNehnutelnost->addParcela(parcela);
+                }
+            }
+        }
 
         return true;
     }
@@ -151,35 +193,45 @@ public:
         vector<Parcela*> parcela_dup = tree_parcela.find(&oldGPS);
         Parcela* oldParcela = nullptr;
         for (Parcela* p : parcela_dup) {
-            if (p->uid == id) {
+            if (p->getUid() == id) {
                 oldParcela = p;
                 break;
             }
         }
 
         if (oldParcela == nullptr) {
+            delete newGPS;
             return false;
         }
-
 
         vector<Area*> areasDup = tree_area.find(&oldGPS);
         Area* oldArea = nullptr;
         for (Area* a : areasDup) {
-            if (a->parcela == oldParcela) {
+            if (a->getParcela() == oldParcela) {
                 oldArea = a;
                 break;
             }
         }
 
-        if(!oldArea) return false;
+        if (!oldArea) {
+            delete newGPS;
+            return false;
+        }
 
         Parcela* newParcela = new Parcela(id, newGPS, params.cisloParcely, params.description);
         tree_parcela.updateNode(oldParcela, &oldGPS, newParcela, newGPS);
-
-        Area* newArea = new Area(oldArea->uid, newGPS, nullptr, newParcela);
+        if(!newGPS->equalsByKeys(oldGPS)) {
+            oldParcela->clearNehnutelnosti();
+            vector<Nehnutelnost*> relatedNehnutelnosti = tree_nehnutelnost.find(newGPS);
+            for (Nehnutelnost* nehnut : relatedNehnutelnosti) {
+                if (nehnut) {
+                    nehnut->addParcela(newParcela);
+                    newParcela->addNehnutelnost(nehnut);
+                }
+            }
+        }
+        Area* newArea = new Area(oldArea->getUid(), newGPS, nullptr, newParcela);
         tree_area.updateNode(oldArea, &oldGPS, newArea, newGPS);
-
-
 
         return true;
     }
@@ -289,26 +341,26 @@ public:
 
         tree_nehnutelnost.levelOrderTraversal([&nehnutelnostiOut](auto node) {
             const Nehnutelnost* nehnutelnost = node->_data;
-            nehnutelnostiOut << nehnutelnost->uid << ";"
-                             << nehnutelnost->gps->x << ";"
-                             << nehnutelnost->gps->y << ";"
-                             << nehnutelnost->gps->width << ";"
-                             << nehnutelnost->gps->length << ";"
-                             << nehnutelnost->supisneCislo << ";"
-                             << nehnutelnost->popis << "\n";
+            nehnutelnostiOut << nehnutelnost->getUid() << ";"
+                             << nehnutelnost->getGps()->getX() << ";"
+                             << nehnutelnost->getGps()->getY() << ";"
+                             << nehnutelnost->getGps()->getWidth() << ";"
+                             << nehnutelnost->getGps()->getLength() << ";"
+                             << nehnutelnost->getSupisneCislo() << ";"
+                             << nehnutelnost->getPopis() << "\n";
         });
 
         parcelyOut << "UID;GPS_X;GPS_Y;Width;Length;CisloParcely;Popis\n";
 
         tree_parcela.levelOrderTraversal([&parcelyOut](auto node) {
             const Parcela* parcela = node->_data;
-            parcelyOut << parcela->uid << ";"
-                       << parcela->gps->x << ";"
-                       << parcela->gps->y << ";"
-                       << parcela->gps->width << ";"
-                       << parcela->gps->length << ";"
-                       << parcela->cisloParcely << ";"
-                       << parcela->popis << "\n";
+            parcelyOut << parcela->getUid() << ";"
+                       << parcela->getGps()->getX() << ";"
+                       << parcela->getGps()->getX() << ";"
+                       << parcela->getGps()->getWidth() << ";"
+                       << parcela->getGps()->getLength() << ";"
+                       << parcela->getCisloParcely() << ";"
+                       << parcela->getPopis() << "\n";
         });
 
         nehnutelnostiOut.close();
@@ -320,21 +372,10 @@ public:
     bool deleteAreaRecord(int id, const GPSParameters& coords) {
         GPS gps(coords.x, coords.y, coords.width, coords.length);
 
-        std::cout << "Searching Area with GPS: (x: " << coords.x << ", y: " << coords.y
-                  << ", width: " << coords.width << ", length: " << coords.length << ")" << std::endl;
-
         vector<Area*> areasDup = tree_area.find(&gps);
-
-        for (Area* a : areasDup) {
-            std::cout << "Found Area with UID: " << a->uid << ", GPS: (x: "
-                      << a->gps->x << ", y: " << a->gps->y
-                      << ", width: " << a->gps->width
-                      << ", length: " << a->gps->length << ")" << std::endl;
-        }
-
         Area* area = nullptr;
         for (Area* a : areasDup) {
-            if (a->uid == id) {
+            if (a->getUid() == id) {
                 area = a;
                 break;
             }
@@ -347,42 +388,25 @@ public:
 
         std::cout << "Deleting Area with ID " << id << std::endl;
 
-        if (area->nehnutelnost) {
-            std::cout << "Area has associated Nehnutelnost UID: " << area->nehnutelnost->uid << std::endl;
-            tree_nehnutelnost.removeNode(area->nehnutelnost);
-            std::cout << "Removed Nehnutelnost from tree with UID: " << area->nehnutelnost->uid << std::endl;
-
-        } else if (area->parcela) {
-            std::cout << "Area has associated Parcela UID: " << area->parcela->uid << std::endl;
-            tree_parcela.removeNode(area->parcela);
-            std::cout << "Removed Parcela from tree with UID: " << area->parcela->uid << std::endl;
+        if (area->getNehnutelnost()) {
+            area->getNehnutelnost()->clearParcely();
+            tree_nehnutelnost.removeNode(area->getNehnutelnost());
+        } else if (area->getParcela()) {
+            area->getParcela()->clearNehnutelnosti();
+            tree_parcela.removeNode(area->getParcela());
         }
 
         tree_area.removeNode(area);
-        std::cout << "Removed Area from tree with ID: " << id << std::endl;
-
         return true;
     }
 
     bool deleteNehnutelnostRecord(int id, const GPSParameters& coords) {
         GPS gps(coords.x, coords.y, coords.width, coords.length);
 
-        std::cout << "Searching Nehnutelnost with GPS: (x: " << coords.x << ", y: " << coords.y
-                  << ", width: " << coords.width << ", length: " << coords.length << ")" << std::endl;
-
         vector<Nehnutelnost*> nehnutelnost_dup = tree_nehnutelnost.find(&gps);
-        vector<Area*> areasDup = tree_area.find(&gps);
-
-        for (Nehnutelnost* n : nehnutelnost_dup) {
-            std::cout << "Found Nehnutelnost with UID: " << n->uid << ", GPS: (x: "
-                      << n->gps->x << ", y: " << n->gps->y
-                      << ", width: " << n->gps->width
-                      << ", length: " << n->gps->length << ")" << std::endl;
-        }
-
         Nehnutelnost* nehnutelnost = nullptr;
         for (Nehnutelnost* n : nehnutelnost_dup) {
-            if (n->uid == id) {
+            if (n->getUid() == id) {
                 nehnutelnost = n;
                 break;
             }
@@ -395,46 +419,26 @@ public:
 
         std::cout << "Deleting Nehnutelnost with ID " << id << std::endl;
 
-        Area* area = nullptr;
+        nehnutelnost->clearParcely();
+        tree_nehnutelnost.removeNode(nehnutelnost);
+
+        vector<Area*> areasDup = tree_area.find(&gps);
         for (Area* a : areasDup) {
-            if (a->nehnutelnost == nehnutelnost) {
-                area = a;
+            if (a->getNehnutelnost() == nehnutelnost) {
+                tree_area.removeNode(a);
                 break;
             }
         }
-
-        tree_nehnutelnost.removeNode(nehnutelnost);
-        std::cout << "Removed Nehnutelnost from tree with UID: " << id << std::endl;
-
-        if (area) {
-            tree_area.removeNode(area);
-            std::cout << "Removed associated Area from tree with ID: " << area->uid << std::endl;
-        } else {
-            std::cout << "No associated Area found for Nehnutelnost with ID: " << id << std::endl;
-        }
-
         return true;
     }
 
     bool deleteParcelaRecord(int id, const GPSParameters& coords) {
         GPS gps(coords.x, coords.y, coords.width, coords.length);
 
-        std::cout << "Searching Parcela with GPS: (x: " << coords.x << ", y: " << coords.y
-                  << ", width: " << coords.width << ", length: " << coords.length << ")" << std::endl;
-
         vector<Parcela*> parcela_dup = tree_parcela.find(&gps);
-        vector<Area*> areasDup = tree_area.find(&gps);
-
-        for (Parcela* p : parcela_dup) {
-            std::cout << "Found Parcela with UID: " << p->uid << ", GPS: (x: "
-                      << p->gps->x << ", y: " << p->gps->y
-                      << ", width: " << p->gps->width
-                      << ", length: " << p->gps->length << ")" << std::endl;
-        }
-
         Parcela* parcela = nullptr;
         for (Parcela* p : parcela_dup) {
-            if (p->uid == id) {
+            if (p->getUid() == id) {
                 parcela = p;
                 break;
             }
@@ -447,27 +451,18 @@ public:
 
         std::cout << "Deleting Parcela with ID " << id << std::endl;
 
-        Area* area = nullptr;
+        parcela->clearNehnutelnosti();
+        tree_parcela.removeNode(parcela);
+
+        vector<Area*> areasDup = tree_area.find(&gps);
         for (Area* a : areasDup) {
-            if (a->parcela == parcela) {
-                area = a;
+            if (a->getParcela() == parcela) {
+                tree_area.removeNode(a);
                 break;
             }
         }
-
-        tree_parcela.removeNode(parcela);
-        std::cout << "Removed Parcela from tree with UID: " << id << std::endl;
-
-        if (area) {
-            tree_area.removeNode(area);
-            std::cout << "Removed associated Area from tree with ID: " << area->uid << std::endl;
-        } else {
-            std::cout << "No associated Area found for Parcela with ID: " << id << std::endl;
-        }
-
         return true;
     }
-
 
     void clearAllData() {
         auto allAreas = this->allAreas();
@@ -479,23 +474,20 @@ public:
         for (Area*& area : allAreas) {
             if (area != nullptr) {
 
-                if (area->nehnutelnost != nullptr) {
-                    if (area->nehnutelnost->gps != nullptr) {
-                        delete area->nehnutelnost->gps;
-                        area->nehnutelnost->gps = nullptr;
+                if (area->getNehnutelnost() != nullptr) {
+                    if (area->getNehnutelnost()->getGps() != nullptr) {
+                        delete area->getNehnutelnost()->getGps();
+                        area->getNehnutelnost()->setGps(nullptr);
                     }
-                    delete area->nehnutelnost;
-                    area->nehnutelnost = nullptr;
+                    delete area->getNehnutelnost();
                 }
 
-
-                if (area->parcela != nullptr) {
-                    if (area->parcela->gps != nullptr) {
-                        delete area->parcela->gps;
-                        area->parcela->gps = nullptr;
+                if (area->getParcela() != nullptr) {
+                    if (area->getParcela()->getGps() != nullptr) {
+                        delete area->getParcela()->getGps();
+                        area->getParcela()->setGps(nullptr);
                     }
-                    delete area->parcela;
-                    area->parcela = nullptr;
+                    delete area->getParcela();
                 }
 
                 delete area;
@@ -511,19 +503,17 @@ public:
 
 
 
-
     void generateRandomUnits(int countPar, int countNeh, double prekryv) {
-        std::vector<GPS*> parcelGPS;
+        std::vector<Parcela*> parcels;
 
-        if(prekryv > 1) {
+        if (prekryv > 1) {
             prekryv = 1;
         }
-        if(prekryv < 0) {
+        if (prekryv < 0) {
             prekryv = 0;
         }
 
         srand(static_cast<unsigned>(time(0)));
-
 
         for (int i = 0; i < countPar; i++) {
             double x = round((static_cast<double>(rand()) / RAND_MAX * 180 - 90) * 100) / 100;
@@ -535,10 +525,9 @@ public:
                 (y < 0) ? 'E' : 'W'
                 );
 
-            std::cout << "Generated parcel GPS: " << *gps << std::endl;
-            parcelGPS.push_back(gps);
-
             Parcela* p = new Parcela(getBiggerUIDParcely(), gps, 12222222, "Testing parcel");
+            parcels.push_back(p);
+
             Area* a = new Area(getBiggerUIDArea(), gps, nullptr, p);
             tree_parcela.insert(p, gps);
             tree_area.insert(a, gps);
@@ -548,14 +537,17 @@ public:
         int count_not_prekryv = countNeh - count_prekryv;
 
         for (int i = 0; i < count_prekryv; i++) {
-            GPS* gps = parcelGPS[rand() % parcelGPS.size()];
-            std::cout << "Reused parcel GPS for property: " << *gps << std::endl;
+            Parcela* existingParcel = parcels[rand() % parcels.size()];
+            GPS* gps = existingParcel->getGps();
 
             Nehnutelnost* n = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps, rand() % 1000, "Testing nehnutelnost");
-            Area* a = new Area(getBiggerUIDArea(), gps, n, nullptr);
+
+            n->addParcela(existingParcel);
+            existingParcel->addNehnutelnost(n);
+
+            Area* a = new Area(getBiggerUIDArea(), gps, n, existingParcel);
             tree_nehnutelnost.insert(n, gps);
             tree_area.insert(a, gps);
-
         }
 
         for (int i = 0; i < count_not_prekryv; i++) {
@@ -567,20 +559,16 @@ public:
                 (x < 0) ? 'N' : 'S',
                 (y < 0) ? 'E' : 'W'
                 );
-            std::cout << "Generated new property GPS: " << *gps << std::endl;
 
             Nehnutelnost* n = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps, rand() % 1000, "Testing nehnutelnost");
             Area* a = new Area(getBiggerUIDArea(), gps, n, nullptr);
+
             tree_nehnutelnost.insert(n, gps);
             tree_area.insert(a, gps);
         }
-
     }
 
-
 };
-
-
 
 inline TreeDatabase::TreeDatabase(string nehnutelnostiFile, string parcelyFile) :  nehnutelnostiFile(nehnutelnostiFile), parcelyFile(parcelyFile) ,tree_nehnutelnost(4), tree_parcela(4), tree_area(4), fileloader(idNehnutelnost,idArea, idParcely)
 {
