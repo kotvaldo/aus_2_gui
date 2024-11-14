@@ -690,6 +690,7 @@ void MainWindow::on_task6_btn_clicked()
 void MainWindow::on_task8_btn_clicked()
 {
     deleteSelectedItem(ui->list_of_items);
+    ui->listWidget_prekryv->clear();
 }
 
 

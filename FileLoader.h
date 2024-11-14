@@ -52,7 +52,7 @@ public:
         return idAreas.size();
     }
 
-    bool loadNehnutelnosti(const std::string& filename,  GeneralKDTree<GPS, Nehnutelnost>& tree_nehnutelnost, GeneralKDTree<GPS, Area>& tree_area) {
+    bool loadNehnutelnosti(const std::string& filename, GeneralKDTree<GPS, Parcela>& tree_parcely,  GeneralKDTree<GPS, Nehnutelnost>& tree_nehnutelnost, GeneralKDTree<GPS, Area>& tree_area) {
         std::ifstream infile(filename);
         if (!infile) {
             std::cerr << "Unable to open file " << filename << std::endl;
@@ -88,8 +88,19 @@ public:
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
             tree_nehnutelnost.insert(nehnutelnost, gps);
-            Area* a = new Area(getBiggerIDArea(), new GPS(*gps), nehnutelnost, nullptr);
-            tree_area.insert(a, gps);
+            vector<Parcela*> parcelyPrekryv = tree_parcely.find(gps);
+            for (Parcela* p : parcelyPrekryv) {
+                if (p->getGps()->equalsByKeys(*gps)) {  // Predpokladáme, že `isWithin` určuje, či sa GPS nachádza v rámci parcely
+                    nehnutelnost->addParcela(p);
+                    p->addNehnutelnost(nehnutelnost);
+                }
+            }
+
+            GPS* gps_copy = new GPS(*gps);
+            Area* a = new Area(getBiggerIDArea(), gps_copy, nehnutelnost, nullptr);
+            tree_area.insert(a, gps_copy);
+
+
         }
 
         infile.close();
@@ -133,8 +144,12 @@ public:
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Parcela* parcela = new Parcela(uid, gps, cisloParcely, popis);
             tree_parcely.insert(parcela, gps);
-            Area* a = new Area(getBiggerIDArea(), gps, nullptr, parcela);
-            tree_area.insert(a, gps);
+
+            GPS* gps_copy = new GPS(*gps);
+            Area* a = new Area(getBiggerIDArea(), gps_copy, nullptr, parcela);
+            tree_area.insert(a, gps_copy);
+
+
         }
 
         infile.close();

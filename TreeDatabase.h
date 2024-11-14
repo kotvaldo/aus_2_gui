@@ -319,8 +319,8 @@ public:
 
 
     void LoadDataFromFile() {
-        fileloader.loadNehnutelnosti(nehnutelnostiFile, tree_nehnutelnost, tree_area);
         fileloader.loadParcely(parcelyFile, tree_parcela, tree_area);
+        fileloader.loadNehnutelnosti(nehnutelnostiFile, tree_parcela, tree_nehnutelnost, tree_area);
     }
 
 
