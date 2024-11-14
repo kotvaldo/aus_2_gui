@@ -88,7 +88,7 @@ public:
             GPS* gps = new GPS(gpsX, gpsY, width, length);
             Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
             tree_nehnutelnost.insert(nehnutelnost, gps);
-            Area* a = new Area(getBiggerIDArea(), gps, nehnutelnost, nullptr);
+            Area* a = new Area(getBiggerIDArea(), new GPS(*gps), nehnutelnost, nullptr);
             tree_area.insert(a, gps);
         }
 

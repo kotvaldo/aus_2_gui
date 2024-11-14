@@ -22,7 +22,14 @@ public:
     Nehnutelnost(const Nehnutelnost& other)
         : uid(other.uid), gps(new GPS(*other.gps)), supisneCislo(other.supisneCislo), popis(other.popis), parcely(other.parcely) {}
 
-    ~Nehnutelnost() { delete gps; }
+    ~Nehnutelnost() {
+        clearParcely();       // Vymaže všetky referencie na `Parcela`
+        if (gps) {
+            delete gps;
+            gps = nullptr;
+        }
+    }
+
 
     bool equals(const Nehnutelnost& other) const override {
         return this->uid == other.uid && this->gps->equalsByKeys(*other.gps);
@@ -54,7 +61,7 @@ public:
 
     // Setters
     void setUid(int newUid) { uid = newUid; }
-    void setGps(GPS* newGps) { if (gps) delete gps; gps = new GPS(*newGps); }
+    void setGps(GPS* newGps) { gps = newGps; }
     void setSupisneCislo(int newSupisneCislo) { supisneCislo = newSupisneCislo; }
     void setPopis(const std::string& newPopis) { popis = newPopis; }
     void addParcela(Parcela* parcela) { parcely.push_back(parcela); }

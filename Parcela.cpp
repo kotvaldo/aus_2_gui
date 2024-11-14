@@ -5,15 +5,15 @@
 void Parcela::removeNehnutelnost(Nehnutelnost* nehnut) {
     auto it = std::find(nehnutelnosti.begin(), nehnutelnosti.end(), nehnut);
     if (it != nehnutelnosti.end()) {
-        nehnutelnosti.erase(it);  // Odstráni Nehnutelnost z listu nehnutelnosti
-        nehnut->removeParcela(this);  // Obojsmerne zruší prepojenie v Nehnutelnost
+        nehnutelnosti.erase(it);
+        nehnut->removeParcela(this);
     }
 }
 
 void Parcela::clearNehnutelnosti() {
     for (Nehnutelnost* nehnut : nehnutelnosti) {
-        nehnut->removeParcela(this);  // Odstráni referenciu na túto parcelu v každej Nehnutelnost
+        nehnut->removeParcela(this);
     }
-    nehnutelnosti.clear();  // Vyprázdnime zoznam nehnutelností
+    nehnutelnosti.clear();
 }
 

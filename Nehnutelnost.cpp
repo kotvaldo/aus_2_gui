@@ -13,7 +13,7 @@ void Nehnutelnost::removeParcela(Parcela* parcela) {
 
 void Nehnutelnost::clearParcely() {
     for (Parcela* parcela : parcely) {
-        parcela->removeNehnutelnost(this);  // Zrušíme referenciu v Parcela
+        parcela->removeNehnutelnost(this);
     }
-    parcely.clear();  // Vyprázdnime zoznam prepojených parciel
+    parcely.clear();
 }

@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->setupUi(this);
-    resize(1200, 780);
+    resize(1300, 780);
 
     ui->comboBox_program_type->addItem("Nehnutelosti");
     ui->comboBox_program_type->addItem("Parcely");
@@ -72,8 +72,13 @@ void MainWindow::deleteSelectedItem(QListWidget* listWidget) {
         };
 
         if (type == ProgramType::Area) {
-            int uidArea = selectedItem->data(Qt::UserRole + 8).toInt();
-            success = database.deleteAreaRecord(uidArea, gpsParams);
+            bool isNehnutelnost = selectedItem->data(Qt::UserRole + 5).toBool();
+            if(isNehnutelnost) {
+                success = database.deleteNehnutelnostRecord(uid, gpsParams);
+            } else {
+                success = database.deleteParcelaRecord(uid, gpsParams);
+            }
+
         } else if (type == ProgramType::Nehnutelnosti) {
             success = database.deleteNehnutelnostRecord(uid, gpsParams);
         } else if (type == ProgramType::Parcely) {
@@ -239,6 +244,7 @@ void MainWindow::RefreshListByParcel(QListWidget* listWidget, const std::vector<
 
 
 void MainWindow::editing_parameters() {
+     this->ui->listWidget_prekryv->clear();
     QListWidgetItem* selectedItem = ui->list_of_items->currentItem();
     if (!selectedItem) {
         QMessageBox::warning(this, "Warning", "No item selected!");
@@ -247,7 +253,6 @@ void MainWindow::editing_parameters() {
 
     int uid = selectedItem->data(Qt::UserRole).toInt();
 
-    // Použitie správnych indexov pre width a length: UserRole + 6 a UserRole + 7
     GPSParameters oldCoords{
         selectedItem->data(Qt::UserRole + 1).toDouble(),
         selectedItem->data(Qt::UserRole + 2).toDouble(),
@@ -318,6 +323,7 @@ void MainWindow::editing_parameters() {
 
 void MainWindow::on_clear_btn_clicked()
 {
+     this->ui->listWidget_prekryv->clear();
     database.clearAllData();
     if (type == ProgramType::Area) {
         RefreshListByArea(ui->list_of_items, database.allAreas());
@@ -343,6 +349,7 @@ void MainWindow::on_save_button_clicked()
 void MainWindow::on_delete_btn_clicked()
 {
     this->deleteSelectedItem(ui->list_of_items);
+    this->ui->listWidget_prekryv->clear();
 }
 
 
@@ -375,6 +382,7 @@ void MainWindow::on_comboBox_program_type_currentIndexChanged(int index)
 
 void MainWindow::on_load_from_file_clicked()
 {
+     this->ui->listWidget_prekryv->clear();
     database.LoadDataFromFile();
     RefreshListByArea(ui->list_of_items, database.allAreas());
     type = ProgramType::Area;

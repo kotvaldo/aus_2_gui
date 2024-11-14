@@ -21,7 +21,15 @@ public:
     Parcela(const Parcela& other)
         : uid(other.uid), gps(new GPS(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis), nehnutelnosti(other.nehnutelnosti) {}
 
-    ~Parcela() { delete gps; }
+    ~Parcela() {
+        clearNehnutelnosti();
+        if (gps) {
+            delete gps;
+            gps = nullptr;
+        }
+    }
+
+
 
     bool equals(const Parcela& other) const override {
         return this->uid == other.uid && this->gps->equalsByKeys(*other.gps);
@@ -51,7 +59,7 @@ public:
     const std::vector<Nehnutelnost*>& getNehnutelnosti() const { return nehnutelnosti; }
 
     void setUid(int newUid) { uid = newUid; }
-    void setGps(GPS* newGps) { if (gps) delete gps; gps = new GPS(*newGps); }
+    void setGps(GPS* newGps) { gps = newGps; }
     void setCisloParcely(int newCisloParcely) { cisloParcely = newCisloParcely; }
     void setPopis(const std::string& newPopis) { popis = newPopis; }
     void addNehnutelnost(Nehnutelnost* nehnut) { nehnutelnosti.push_back(nehnut); }

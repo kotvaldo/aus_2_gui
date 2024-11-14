@@ -18,6 +18,9 @@ public:
     GPS(const GPS& other)
         : x(other.x), y(other.y), width(other.width), length(other.length) {}
 
+
+
+
     int compare(const GPS& other, int cur_level) const override {
         if (cur_level % 4 == 0) {
             if (this->width < other.width) return -1;

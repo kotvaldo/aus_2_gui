@@ -22,10 +22,16 @@ public:
         parcela(other.parcela ? new Parcela(*other.parcela) : nullptr) {}
 
     ~Area() {
-        delete gps;
-        delete nehnutelnost;
-        delete parcela;
+        std::cout << "Deleting Area: " << this << ", GPS: " << gps << std::endl;
+
+        if (gps) {
+            delete gps;
+            gps = nullptr;
+            nehnutelnost = nullptr;
+            parcela = nullptr;
+        }
     }
+
 
     bool equals(const Area& other) const override {
         return this->uid == other.uid && this->gps->equalsByKeys(*other.gps);
@@ -52,6 +58,7 @@ public:
     GPS* getGps() const { return gps; }
     Nehnutelnost* getNehnutelnost() const { return nehnutelnost; }
     Parcela* getParcela() const { return parcela; }
-
+    void setNehnutelnost(Nehnutelnost* newNehnutelnost) { nehnutelnost = newNehnutelnost; }
+    void setParcela(Parcela* newParcela) { parcela = newParcela; }
 
 };
