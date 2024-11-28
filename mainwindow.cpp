@@ -403,70 +403,70 @@ void MainWindow::on_list_of_items_itemClicked(QListWidgetItem* item)
 
     ui->listWidget_prekryv->clear();
 
-    if (type == ProgramType::Nehnutelnosti) {
-        Nehnutelnost* nehnutelnost = reinterpret_cast<Nehnutelnost*>(item->data(Qt::UserRole + 9).value<void*>());
-        if (nehnutelnost) {
-            for (const auto& parcela : nehnutelnost->getParcely()) {
-                QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
-                .arg(parcela->getUid())
-                    .arg(parcela->getGps()->getX())
-                    .arg(parcela->getGps()->getY())
-                    .arg(parcela->getGps()->getWidth())
-                    .arg(parcela->getGps()->getLength())
-                    .arg(parcela->getCisloParcely())
-                    .arg(QString::fromStdString(parcela->getPopis()));
-                ui->listWidget_prekryv->addItem(itemText);
-            }
-        }
-    } else if (type == ProgramType::Parcely) {
-        Parcela* parcela = reinterpret_cast<Parcela*>(item->data(Qt::UserRole + 9).value<void*>());
-        if (parcela) {
-            for (const auto& nehnutelnost : parcela->getNehnutelnosti()) {
-                QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
-                .arg(nehnutelnost->getUid())
-                    .arg(nehnutelnost->getGps()->getX())
-                    .arg(nehnutelnost->getGps()->getY())
-                    .arg(nehnutelnost->getGps()->getWidth())
-                    .arg(nehnutelnost->getGps()->getLength())
-                    .arg(nehnutelnost->getSupisneCislo())
-                    .arg(QString::fromStdString(nehnutelnost->getPopis()));
-                ui->listWidget_prekryv->addItem(itemText);
-            }
-        }
-    } else if (type == ProgramType::Area) {
-        bool isNehnutelnost = item->data(Qt::UserRole + 5).toBool();
-        if (isNehnutelnost) {
-            Nehnutelnost* nehnutelnost = reinterpret_cast<Nehnutelnost*>(item->data(Qt::UserRole + 9).value<void*>());
-            if (nehnutelnost) {
-                for (const auto& parcela : nehnutelnost->getParcely()) {
-                    QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
-                    .arg(parcela->getUid())
-                        .arg(parcela->getGps()->getX())
-                        .arg(parcela->getGps()->getY())
-                        .arg(parcela->getGps()->getWidth())
-                        .arg(parcela->getGps()->getLength())
-                        .arg(parcela->getCisloParcely())
-                        .arg(QString::fromStdString(parcela->getPopis()));
-                    ui->listWidget_prekryv->addItem(itemText);
-                }
-            }
-        } else {
-            Parcela* parcela = reinterpret_cast<Parcela*>(item->data(Qt::UserRole + 9).value<void*>());
-            if (parcela) {
-                for (const auto& nehnutelnost : parcela->getNehnutelnosti()) {
-                    QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
-                    .arg(nehnutelnost->getUid())
-                        .arg(nehnutelnost->getGps()->getX())
-                        .arg(nehnutelnost->getGps()->getY())
-                        .arg(nehnutelnost->getGps()->getWidth())
-                        .arg(nehnutelnost->getGps()->getLength())
-                        .arg(nehnutelnost->getSupisneCislo())
-                        .arg(QString::fromStdString(nehnutelnost->getPopis()));
-                    ui->listWidget_prekryv->addItem(itemText);
-                }
-            }
-        }
-    }
+    // if (type == ProgramType::Nehnutelnosti) {
+    //     Nehnutelnost* nehnutelnost = reinterpret_cast<Nehnutelnost*>(item->data(Qt::UserRole + 9).value<void*>());
+    //     if (nehnutelnost) {
+    //         for (const auto& parcela : nehnutelnost->getParcely()) {
+    //             QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
+    //             .arg(parcela->getUid())
+    //                 .arg(parcela->getGps()->getX())
+    //                 .arg(parcela->getGps()->getY())
+    //                 .arg(parcela->getGps()->getWidth())
+    //                 .arg(parcela->getGps()->getLength())
+    //                 .arg(parcela->getCisloParcely())
+    //                 .arg(QString::fromStdString(parcela->getPopis()));
+    //             ui->listWidget_prekryv->addItem(itemText);
+    //         }
+    //     }
+    // } else if (type == ProgramType::Parcely) {
+    //     Parcela* parcela = reinterpret_cast<Parcela*>(item->data(Qt::UserRole + 9).value<void*>());
+    //     if (parcela) {
+    //         for (const auto& nehnutelnost : parcela->getNehnutelnosti()) {
+    //             QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
+    //             .arg(nehnutelnost->getUid())
+    //                 .arg(nehnutelnost->getGps()->getX())
+    //                 .arg(nehnutelnost->getGps()->getY())
+    //                 .arg(nehnutelnost->getGps()->getWidth())
+    //                 .arg(nehnutelnost->getGps()->getLength())
+    //                 .arg(nehnutelnost->getSupisneCislo())
+    //                 .arg(QString::fromStdString(nehnutelnost->getPopis()));
+    //             ui->listWidget_prekryv->addItem(itemText);
+    //         }
+    //     }
+    // } else if (type == ProgramType::Area) {
+    //     bool isNehnutelnost = item->data(Qt::UserRole + 5).toBool();
+    //     if (isNehnutelnost) {
+    //         Nehnutelnost* nehnutelnost = reinterpret_cast<Nehnutelnost*>(item->data(Qt::UserRole + 9).value<void*>());
+    //         if (nehnutelnost) {
+    //             for (const auto& parcela : nehnutelnost->getParcely()) {
+    //                 QString itemText = QString("Parcela UID: %1, GPS: (%2, %3, %4, %5), Cislo Parcely: %6, Popis: %7")
+    //                 .arg(parcela->getUid())
+    //                     .arg(parcela->getGps()->getX())
+    //                     .arg(parcela->getGps()->getY())
+    //                     .arg(parcela->getGps()->getWidth())
+    //                     .arg(parcela->getGps()->getLength())
+    //                     .arg(parcela->getCisloParcely())
+    //                     .arg(QString::fromStdString(parcela->getPopis()));
+    //                 ui->listWidget_prekryv->addItem(itemText);
+    //             }
+    //         }
+    //     } else {
+    //         Parcela* parcela = reinterpret_cast<Parcela*>(item->data(Qt::UserRole + 9).value<void*>());
+    //         if (parcela) {
+    //             for (const auto& nehnutelnost : parcela->getNehnutelnosti()) {
+    //                 QString itemText = QString("Nehnutelnost UID: %1, GPS: (%2, %3, %4, %5), Supisne Cislo: %6, Popis: %7")
+    //                 .arg(nehnutelnost->getUid())
+    //                     .arg(nehnutelnost->getGps()->getX())
+    //                     .arg(nehnutelnost->getGps()->getY())
+    //                     .arg(nehnutelnost->getGps()->getWidth())
+    //                     .arg(nehnutelnost->getGps()->getLength())
+    //                     .arg(nehnutelnost->getSupisneCislo())
+    //                     .arg(QString::fromStdString(nehnutelnost->getPopis()));
+    //                 ui->listWidget_prekryv->addItem(itemText);
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 

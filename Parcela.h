@@ -1,36 +1,21 @@
-#pragma once
 #include "GPS.h"
-#include "IComparable.h"
 
-#include <vector>
-
-class Nehnutelnost;  // Dopredná deklarácia triedy Parcela
-
-class Parcela : public IComparable<Parcela> {
+class Parcela : public IComparable<Parcela>, public IPrototype {
 private:
     int uid;
-    GPS* gps;
+    GPS *gps;
     int cisloParcely;
     std::string popis;
-    std::vector<Nehnutelnost*> nehnutelnosti;
 
 public:
-    Parcela(int id, GPS* gpsCoord, int cislo = -1, const std::string& desc = "")
+    Parcela(int id, GPS *gpsCoord, int cislo = -1, const std::string &desc = "")
         : uid(id), gps(new GPS(*gpsCoord)), cisloParcely(cislo), popis(desc) {}
 
     Parcela(const Parcela& other)
-        : uid(other.uid), gps(new GPS(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis), nehnutelnosti(other.nehnutelnosti) {}
-
+        : uid(other.uid), gps(new GPS(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis) {}
     ~Parcela() {
-        clearNehnutelnosti();
-        if (gps) {
-            delete gps;
-            gps = nullptr;
-        }
+        if (gps) delete gps;
     }
-
-
-
     bool equals(const Parcela& other) const override {
         return this->uid == other.uid && this->gps->equalsByKeys(*other.gps);
     }
@@ -43,29 +28,28 @@ public:
         return gps->compare(*other.gps, cur_level);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Parcela& parcela) {
-        os << "Parcela(uid: " << parcela.uid
-           << ", GPS: " << *parcela.gps
-           << ", Cislo parcely: " << (parcela.cisloParcely == -1 ? "N/A" : std::to_string(parcela.cisloParcely))
-           << ", Popis: " << (parcela.popis.empty() ? "No description" : parcela.popis) << ")";
+    friend std::ostream &operator<<(std::ostream &os, const Parcela &parcela)
+    {
+        os << "Parcela(uid: " << parcela.uid << ", GPS: " << *parcela.gps
+           << ", Cislo parcely: " << parcela.cisloParcely
+           << ", Popis: " << (parcela.popis.empty() ? "N/A" : parcela.popis);
+        os << ")";
         return os;
     }
 
-
+    // Getters
     int getUid() const { return uid; }
     GPS* getGps() const { return gps; }
     int getCisloParcely() const { return cisloParcely; }
     const std::string& getPopis() const { return popis; }
-    const std::vector<Nehnutelnost*>& getNehnutelnosti() const { return nehnutelnosti; }
 
+    // Setters
     void setUid(int newUid) { uid = newUid; }
-    void setGps(GPS* newGps) { gps = newGps; }
+    void setGps(GPS *newGps) { gps = newGps; }
     void setCisloParcely(int newCisloParcely) { cisloParcely = newCisloParcely; }
-    void setPopis(const std::string& newPopis) { popis = newPopis; }
-    void addNehnutelnost(Nehnutelnost* nehnut) { nehnutelnosti.push_back(nehnut); }
+    void setPopis(const std::string &newPopis) { popis = newPopis; }
 
-    void removeNehnutelnost(Nehnutelnost *nehnut);
-    void clearNehnutelnosti();
+    IPrototype* clone() override {
+        return new Parcela(*this);
+    }
 };
-
-
