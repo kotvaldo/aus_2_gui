@@ -44,10 +44,10 @@ public:
 
     void clear();
     std::vector<std::shared_ptr<DataType>> find(std::shared_ptr<KeyType> keys);
-    std::shared_ptr<DataType> insert(std::shared_ptr<DataType> data, std::shared_ptr<KeyType> keys);
+    std::shared_ptr<DataType> insert(std::shared_ptr<DataType> data);
     bool removeNode(std::shared_ptr<DataType> data, KDNodeType startNode = nullptr, int targetDimension = -1);
-    bool updateNode(std::shared_ptr<DataType> oldData, std::shared_ptr<KeyType> oldKeys,
-                    std::shared_ptr<DataType> newData, std::shared_ptr<KeyType> newKeys);
+    bool updateNode(std::shared_ptr<DataType> oldData,
+                    std::shared_ptr<DataType> newData);
     size_t size() const;
     KDNodeType accessRoot();
     std::shared_ptr<KDTreeNode<KeyType, DataType>> findMaxInLeftSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType>> parent);
@@ -95,16 +95,16 @@ void GeneralKDTree<KeyType, DataType>::clear()
 }
 
 
+
 template<typename KeyType, typename DataType>
-std::shared_ptr<DataType> GeneralKDTree<KeyType, DataType>::insert(
-    std::shared_ptr<DataType> data, std::shared_ptr<KeyType> keys)
-{
-    if (!keys) {
-        throw std::invalid_argument("Keys cannot be nullptr");
+std::shared_ptr<DataType> GeneralKDTree<KeyType,DataType>::insert(
+    std::shared_ptr<DataType> data) {
+    if (!data) {
+        throw std::invalid_argument("Data cannot be nullptr");
     }
 
     if (size_ == 0) {
-        this->root = std::make_shared<KDTreeNode<KeyType, DataType>>(data, keys, 0);
+        this->root = std::make_shared<KDTreeNode<KeyType,DataType>>(data, 0);
         this->size_++;
         return this->root->_data;
     }
@@ -117,7 +117,8 @@ std::shared_ptr<DataType> GeneralKDTree<KeyType, DataType>::insert(
 
     while (current != nullptr) {
         parent = current;
-        if (keys->compare(*(current->_keyPart), current_dimension) <= 0) {
+
+        if (data->compare(*(current->_data), current_dimension) <= 0) {
             if (current->_left == nullptr)
                 break;
             current = current->_left;
@@ -131,9 +132,9 @@ std::shared_ptr<DataType> GeneralKDTree<KeyType, DataType>::insert(
         current_dimension = level % this->k;
     }
 
-    KDNodeType newNode = std::make_shared<KDTreeNode<KeyType, DataType>>(data, keys, level + 1);
+    KDNodeType newNode = std::make_shared<KDTreeNode<KeyType,DataType>>(data, level + 1);
 
-    if (keys->compare(*(parent->_keyPart), current_dimension) <= 0) {
+    if (data->compare(*(parent->_data), current_dimension) <= 0) {
         parent->_left = newNode;
     } else {
         parent->_right = newNode;
@@ -143,6 +144,7 @@ std::shared_ptr<DataType> GeneralKDTree<KeyType, DataType>::insert(
     this->size_++;
     return newNode->_data;
 }
+
 
 
 template<typename KeyType, typename DataType>
@@ -320,9 +322,7 @@ bool GeneralKDTree<KeyType, DataType>::removeNode(
 template<typename KeyType, typename DataType>
 bool GeneralKDTree<KeyType, DataType>::updateNode(
     std::shared_ptr<DataType> oldData,
-    std::shared_ptr<KeyType> oldKeys,
-    std::shared_ptr<DataType> newData,
-    std::shared_ptr<KeyType> newKeys)
+    std::shared_ptr<DataType> newData)
 {
     auto oldNode = findNodeWithData(oldData);
 
@@ -336,7 +336,7 @@ bool GeneralKDTree<KeyType, DataType>::updateNode(
         oldNode->_data = newData;
     } else {
         removeNode(oldData);
-        insert(newData, newKeys);
+        insert(newData);
     }
 
     return true;

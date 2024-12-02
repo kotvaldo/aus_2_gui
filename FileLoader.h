@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Area.h"
 #include "GPS.h"
-#include "KDTree.h"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -13,15 +11,11 @@
 class FileLoader
 {
 private:
-    std::vector<int> &idParcely;
-    std::vector<int> &idNehnutelnost;
-    std::vector<int> &idAreas;
+
 
 public:
-    FileLoader(std::vector<int> &idNehnutelnost, std::vector<int> &idAreas, vector<int> &idParcely)
-        : idAreas(idAreas)
-        , idNehnutelnost(idNehnutelnost)
-        , idParcely(idParcely)
+    FileLoader()
+
     {}
 
     ~FileLoader() {}

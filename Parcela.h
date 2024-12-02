@@ -1,21 +1,25 @@
+#pragma once
+#include <memory>
+#include <iostream>
 #include "GPS.h"
+#include "Model.h"
 
-class Parcela : public IComparable<Parcela>, public IPrototype {
+class Parcela : public IComparable<Parcela>, public IPrototype, public Model<GPS> {
 private:
     int uid;
-    GPS *gps;
+    std::shared_ptr<GPS> gps;
     int cisloParcely;
     std::string popis;
 
 public:
-    Parcela(int id, GPS *gpsCoord, int cislo = -1, const std::string &desc = "")
-        : uid(id), gps(new GPS(*gpsCoord)), cisloParcely(cislo), popis(desc) {}
+    Parcela(int id, std::shared_ptr<GPS> gpsCoord, int cislo = -1, const std::string& desc = "")
+        : uid(id), gps(gpsCoord), cisloParcely(cislo), popis(desc) {}
 
     Parcela(const Parcela& other)
-        : uid(other.uid), gps(new GPS(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis) {}
-    ~Parcela() {
-        if (gps) delete gps;
-    }
+        : uid(other.uid), gps(std::make_shared<GPS>(*other.gps)), cisloParcely(other.cisloParcely), popis(other.popis) {}
+
+    ~Parcela() = default;
+
     bool equals(const Parcela& other) const override {
         return this->uid == other.uid && this->gps->equalsByKeys(*other.gps);
     }
@@ -28,28 +32,29 @@ public:
         return gps->compare(*other.gps, cur_level);
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const Parcela &parcela)
-    {
+    friend std::ostream& operator<<(std::ostream& os, const Parcela& parcela) {
         os << "Parcela(uid: " << parcela.uid << ", GPS: " << *parcela.gps
            << ", Cislo parcely: " << parcela.cisloParcely
-           << ", Popis: " << (parcela.popis.empty() ? "N/A" : parcela.popis);
-        os << ")";
+           << ", Popis: " << (parcela.popis.empty() ? "N/A" : parcela.popis) << ")";
         return os;
     }
 
-    // Getters
+
     int getUid() const { return uid; }
-    GPS* getGps() const { return gps; }
+    std::shared_ptr<GPS> getGps() const { return gps; }
     int getCisloParcely() const { return cisloParcely; }
     const std::string& getPopis() const { return popis; }
 
-    // Setters
     void setUid(int newUid) { uid = newUid; }
-    void setGps(GPS *newGps) { gps = newGps; }
     void setCisloParcely(int newCisloParcely) { cisloParcely = newCisloParcely; }
-    void setPopis(const std::string &newPopis) { popis = newPopis; }
+    void setPopis(const std::string& newPopis) { popis = newPopis; }
 
-    IPrototype* clone() override {
-        return new Parcela(*this);
+
+    std::shared_ptr<IPrototype> clone() override {
+        return std::make_shared<Parcela>(*this);
+    }
+
+    std::shared_ptr<GPS> getKey() override {
+        return this->gps;
     }
 };
