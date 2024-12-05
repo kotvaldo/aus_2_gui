@@ -34,26 +34,7 @@ public:
     }
 };
 
-class GPSFactory : public IModelFactory {
-public:
-    GPSFactory() = default;
 
-    std::shared_ptr<IPrototype> createInstance(Parameters keyParameters) override {
-        try {
-            GPSParameters& keyParams = dynamic_cast<GPSParameters&>(keyParameters);
-
-            return std::make_shared<GPS>(keyParams.x, keyParams.y, keyParams.width, keyParams.length);
-
-        } catch (const std::bad_cast& e) {
-            std::cerr << "Error during casting: " << e.what() << std::endl;
-            return nullptr;
-        }
-    }
-
-    std::shared_ptr<IPrototype> createInstance(Parameters keyParameters, Parameters dataParameters) override {
-        return nullptr;
-    }
-};
 
 class ParcelaFactory : public IModelFactory {
 public:
@@ -75,3 +56,23 @@ public:
     }
 };
 
+class GPSFactory : public IModelFactory {
+public:
+    GPSFactory() = default;
+
+    std::shared_ptr<IPrototype> createInstance(Parameters keyParameters) override {
+        try {
+            GPSParameters& keyParams = dynamic_cast<GPSParameters&>(keyParameters);
+
+            return std::make_shared<GPS>(keyParams.x, keyParams.y, keyParams.width, keyParams.length);
+
+        } catch (const std::bad_cast& e) {
+            std::cerr << "Error during casting: " << e.what() << std::endl;
+            return nullptr;
+        }
+    }
+
+    std::shared_ptr<IPrototype> createInstance(Parameters keyParameters, Parameters dataParameters) override {
+        return nullptr;
+    }
+};

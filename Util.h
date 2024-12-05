@@ -81,6 +81,62 @@ public:
         return factory->createInstance(parameters);
     }
 
+    template <typename KeyFactory, typename KeyParameters, typename DataFactory, typename DataParameters>
+    static std::shared_ptr<IPrototype> generateRandomData() {
+        auto key = generateKey<KeyFactory, KeyParameters>();
+        if (!key) {
+            std::cerr << "Failed to generate key!" << std::endl;
+            return nullptr;
+        }
+
+        auto dataParameters = std::make_shared<DataParameters>();
+        if (!dataParameters) {
+            std::cerr << "DataParameters are null!" << std::endl;
+            return nullptr;
+        }
+
+        dataParameters->randomize();
+
+        auto dataFactory = std::make_shared<DataFactory>();
+        if (!dataFactory) {
+            std::cerr << "DataFactory is null!" << std::endl;
+            return nullptr;
+        }
+
+        return dataFactory->createInstance(*key, *dataParameters);
+    }
+
+    template <typename DataFactory, typename DataParameters, typename Key>
+    static std::shared_ptr<IPrototype> duplicateKeyAndRandomizeData(
+        const std::shared_ptr<Key>& existingKey) {
+        if (!existingKey) {
+            std::cerr << "Provided key is null!" << std::endl;
+            return nullptr;
+        }
+
+        auto clonedKey = existingKey->clone();
+        if (!clonedKey) {
+            std::cerr << "Failed to clone the key!" << std::endl;
+            return nullptr;
+        }
+
+        auto dataParameters = std::make_shared<DataParameters>();
+        if (!dataParameters) {
+            std::cerr << "DataParameters are null!" << std::endl;
+            return nullptr;
+        }
+        dataParameters->randomize();
+
+        auto dataFactory = std::make_shared<DataFactory>();
+        if (!dataFactory) {
+            std::cerr << "DataFactory is null!" << std::endl;
+            return nullptr;
+        }
+
+        return dataFactory->createInstance(*clonedKey, *dataParameters);
+    }
+
+
 };
 
 

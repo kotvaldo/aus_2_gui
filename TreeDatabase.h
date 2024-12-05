@@ -157,70 +157,61 @@ public:
 
 
 
-    void generateRandomUnits(int countPar, int countNeh, double prekryv) {
-        std::vector<Parcela*> parcels;
+    void generateRandomUnits(int countPar, int countNeh, double overlapPercentage) {
+        if (overlapPercentage > 1) overlapPercentage = 1;
+        if (overlapPercentage < 0) overlapPercentage = 0;
 
-        if (prekryv > 1) prekryv = 1;
-        if (prekryv < 0) prekryv = 0;
+        std::vector<std::shared_ptr<Data>> parcels;
 
         srand(static_cast<unsigned>(time(0)));
 
         for (int i = 0; i < countPar; i++) {
-            double x = round((static_cast<double>(rand()) / RAND_MAX * 180 - 90) * 100) / 100;
-            double y = round((static_cast<double>(rand()) / RAND_MAX * 360 - 180) * 100) / 100;
-            GPS* gps = new GPS(
-                x,
-                y,
-                (x < 0) ? 'N' : 'S',
-                (y < 0) ? 'E' : 'W'
-                );
+            auto keyParams = std::make_shared<KeyParams>();
+            auto dataParams = std::make_shared<DataParams>();
 
-            Parcela* p = new Parcela(getBiggerUIDParcely(), gps, 12222222, "Testing parcel");
-            parcels.push_back(p);
-            GPS* gps_copy = new GPS(*gps);
-            tree_parcela.insert(p, gps);
-            tree_area.insert(new Area(getBiggerUIDArea(), gps_copy, nullptr, p), gps_copy);
+            keyParams->randomize();  // Náhodné GPS parametre
+            dataParams->id = getBiggerID();
+            dataParams->description = "Testing parcel";
+
+            auto parcel = dataFactory.createInstance(keyParams, dataParams);
+            parcels.push_back(parcel);
+
+            tree.insert(parcel);
         }
 
-        int count_prekryv = static_cast<int>(round(prekryv * countNeh));
-        int count_not_prekryv = countNeh - count_prekryv;
+        int overlapCount = static_cast<int>(round(overlapPercentage * countNeh));
+        int nonOverlapCount = countNeh - overlapCount;
 
+        for (int i = 0; i < overlapCount; i++) {
+            auto existingParcel = parcels[rand() % parcels.size()];
 
-        for (int i = 0; i < count_prekryv; i++) {
-            Parcela* existingParcel = parcels[rand() % parcels.size()];
+            auto keyParams = std::make_shared<KeyParams>(*existingParcel->getKeyParams());
+            auto dataParams = std::make_shared<DataParams>();
 
-            GPS* gps = new GPS(*existingParcel->getGps());
+            dataParams->id = getBiggerID();
+            dataParams->description = "Testing nehnutelnost";
 
-            Nehnutelnost* n = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps, rand() % 1000, "Testing nehnutelnost");
+            auto nehnutelnost = dataFactory.createInstance(keyParams, dataParams);
 
-            n->addParcela(existingParcel);
-            existingParcel->addNehnutelnost(n);
+            existingParcel->addRelated(nehnutelnost);
+            nehnutelnost->addRelated(existingParcel);
 
-            Area* a = new Area(getBiggerUIDArea(), new GPS(*gps), n, existingParcel);
-            tree_nehnutelnost.insert(n, gps);
-            tree_area.insert(a, a->getGps());
+            tree.insert(nehnutelnost);
         }
 
+        for (int i = 0; i < nonOverlapCount; i++) {
+            auto keyParams = std::make_shared<KeyParams>();
+            auto dataParams = std::make_shared<DataParams>();
 
-        for (int i = 0; i < count_not_prekryv; i++) {
-            double x = round((static_cast<double>(rand()) / RAND_MAX * 180 - 90) * 100) / 100;
-            double y = round((static_cast<double>(rand()) / RAND_MAX * 360 - 180) * 100) / 100;
-            GPS* gps = new GPS(
-                x,
-                y,
-                (x < 0) ? 'N' : 'S',
-                (y < 0) ? 'E' : 'W'
-                );
+            keyParams->randomize();  // Náhodné GPS parametre
+            dataParams->id = getBiggerID();
+            dataParams->description = "Testing nehnutelnost";
 
-            Nehnutelnost* n = new Nehnutelnost(getBiggerIDNehnutelnosti(), gps, rand() % 1000, "Testing nehnutelnost");
-            Area* a = new Area(getBiggerUIDArea(), new GPS(*gps), n, nullptr);
+            auto nehnutelnost = dataFactory.createInstance(keyParams, dataParams);
 
-            tree_nehnutelnost.insert(n, gps);
-            tree_area.insert(a, a->getGps());
+            tree.insert(nehnutelnost);
         }
     }
-
-
 
 
 };
