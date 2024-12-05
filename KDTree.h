@@ -1,8 +1,9 @@
 #pragma once
+#include "Delegates.h"
+#include "Node.h"
 #include <functional>
 #include <iostream>
 #include <list>
-#include <queue>
 #include <stack>
 #include <vector>
 #include <memory>
@@ -13,25 +14,6 @@
 
 using namespace std;
 
-template<typename KeyType, typename DataType>
-struct KDTreeNode
-{
-    std::shared_ptr<KDTreeNode> parent;
-    std::shared_ptr<KDTreeNode> _left;
-    std::shared_ptr<KDTreeNode> _right;
-    int _level;
-    std::shared_ptr<DataType> _data;
-    std::shared_ptr<KeyType> _keyPart;
-
-    KDTreeNode(std::shared_ptr<DataType> data, std::shared_ptr<KeyType> keys, int level = 0)
-        : _data(std::move(data))
-        , _keyPart(std::move(keys))
-        , _level(level)
-        , parent(nullptr)
-        , _left(nullptr)
-        , _right(nullptr)
-    {}
-};
 
 template<typename KeyType, typename DataType>
 class GeneralKDTree
@@ -50,11 +32,6 @@ public:
                     std::shared_ptr<DataType> newData);
     size_t size() const;
     KDNodeType accessRoot();
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> findMaxInLeftSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType>> parent);
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> findMinInRightSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType>> parent);
-    void inOrderTraversal(std::function<void(KDNodeType)> func, KDNodeType startNode = nullptr);
-    void levelOrderTraversal(std::function<void(KDNodeType)> func);
-    void reverseLevelOrderTraversal(std::function<void(KDNodeType)> func);
 
     bool hasLeftSon(std::shared_ptr<KDTreeNode<KeyType, DataType>> node);
     bool hasRightSon(std::shared_ptr<KDTreeNode<KeyType, DataType>> node);
@@ -63,13 +40,22 @@ public:
     bool isLeftSon(std::shared_ptr<KDTreeNode<KeyType, DataType>> node, std::shared_ptr<KDTreeNode<KeyType, DataType>> parent);
     bool isRightSon(std::shared_ptr<KDTreeNode<KeyType, DataType>> node, std::shared_ptr<KDTreeNode<KeyType, DataType>> parent);
     // Hľadanie v strome
-    KDNodeType findNodeWithData(std::shared_ptr<DataType> data, KDNodeType startNode = nullptr);
-    KDNodeType findNodeInRightSubtreeWithDimension(KDNodeType node, std::shared_ptr<DataType> data, int target_dimension);
+
+    void inOrderTraversal(std::function<void(KDNodeType)> func, std::shared_ptr<KDTreeNode<KeyType, DataType>> startNode);
+    void levelOrderTraversal(std::function<void(KDNodeType)> func,  std::shared_ptr<KDTreeNode<KeyType, DataType>> startNode);
+    void reverseLevelOrderTraversal(std::function<void(KDNodeType)> func, std::shared_ptr<KDTreeNode<KeyType, DataType>> startNode);
+    std::shared_ptr<KDTreeNode<KeyType, DataType>> findMaxInLeftSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType>> parent, size_t k);
+    std::shared_ptr<KDTreeNode<KeyType, DataType>> findMinInRightSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType>> parent, size_t k);
+    std::shared_ptr<KDTreeNode<KeyType, DataType>> findNodeWithData(std::shared_ptr<DataType> data, KDNodeType startNode, size_t k);
+    std::shared_ptr<KDTreeNode<KeyType, DataType>> findNodeInRightSubtreeWithDimension(KDNodeType node, std::shared_ptr<DataType> data, int target_dimension, size_t k);
+    std::shared_ptr<KDTreeNode<KeyType, DataType>> getRoot();
+    size_t getK();
 
 private:
     size_t size_;
     KDNodeType root;
     size_t k;
+    std::shared_ptr<TreeTraversal<KeyType, DataType>> traversal;
 };
 
 
@@ -82,6 +68,7 @@ inline GeneralKDTree<KeyType, DataType>::GeneralKDTree(size_t dim_count)
     this->k = dim_count;
     this->size_ = 0;
     this->root = nullptr;
+    traversal(TreeTraversal<KeyType, DataType>::GetInstance());
 }
 
 
@@ -342,184 +329,21 @@ bool GeneralKDTree<KeyType, DataType>::updateNode(
     return true;
 }
 
+
+
+
+
+
 template<typename KeyType, typename DataType>
-std::shared_ptr<KDTreeNode<KeyType, DataType>> GeneralKDTree<KeyType, DataType>::findNodeWithData(
-    std::shared_ptr<DataType> data,
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> startNode)
+inline std::shared_ptr<KDTreeNode<KeyType, DataType> > GeneralKDTree<KeyType, DataType>::getRoot()
 {
-    if (this->size_ == 0 || !data) {
-        return nullptr;
-    }
-
-    auto current = startNode ? startNode : this->root;
-
-    while (current) {
-        if (current->_data->equals(*data)) {
-            return current;
-        }
-
-        int curr_dim = current->_level % this->k;
-        int comparison_result = data->compare(*(current->_data), curr_dim);
-
-        if (comparison_result <= 0) {
-            current = current->_left;
-        } else {
-            current = current->_right;
-        }
-    }
-
-    return nullptr;
+    return this->root;
 }
 
 template<typename KeyType, typename DataType>
-std::shared_ptr<KDTreeNode<KeyType, DataType>>
-GeneralKDTree<KeyType, DataType>::findNodeInRightSubtreeWithDimension(
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> node,
-    std::shared_ptr<DataType> data,
-    int target_dimension)
+inline size_t GeneralKDTree<KeyType, DataType>::getK()
 {
-    if (!node || !node->_right) {
-        return nullptr;
-    }
-
-    std::stack<std::shared_ptr<KDTreeNode<KeyType, DataType>>> nodesToVisit;
-    nodesToVisit.push(node->_right);
-
-    while (!nodesToVisit.empty()) {
-        auto currentNode = nodesToVisit.top();
-        nodesToVisit.pop();
-
-        if (currentNode->_data->equals(*data)) {
-            return currentNode;
-        }
-
-        int current_dimension = currentNode->_level % this->k;
-
-        if (current_dimension != target_dimension) {
-            if (currentNode->_left) {
-                nodesToVisit.push(currentNode->_left);
-            }
-            if (currentNode->_right) {
-                nodesToVisit.push(currentNode->_right);
-            }
-        } else {
-            if (currentNode->_left) {
-                nodesToVisit.push(currentNode->_left);
-            }
-        }
-    }
-
-    return nullptr;
-}
-
-
-template<typename KeyType, typename DataType>
-std::shared_ptr<KDTreeNode<KeyType, DataType>> GeneralKDTree<KeyType, DataType>::findMaxInLeftSubTree(
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> parent)
-{
-    if (!parent || !parent->_left) {
-        std::cout << "Left subtree is empty; no max node found." << std::endl;
-        return nullptr;
-    }
-
-    auto current = parent->_left;
-    auto maxNode = current;
-    int target_dimension = parent->_level % this->k;
-
-    std::stack<std::shared_ptr<KDTreeNode<KeyType, DataType>>> nodesToVisit;
-    nodesToVisit.push(current);
-
-    std::cout << "Starting search for max in left subtree. Initial node key: "
-              << *(current->_keyPart) << ", dimension to compare: " << target_dimension
-              << std::endl;
-
-    while (!nodesToVisit.empty()) {
-        auto node = nodesToVisit.top();
-        nodesToVisit.pop();
-
-        std::cout << "Visiting node with key: " << *(node->_keyPart) << ", level: " << node->_level
-                  << ", current dimension: " << (node->_level % this->k) << std::endl;
-
-        if (node->_keyPart->compare(*(maxNode->_keyPart), target_dimension) >= 0) {
-            std::cout << "Updating max node to key: " << *(node->_keyPart) << std::endl;
-            maxNode = node;
-        }
-
-        int current_dimension = node->_level % this->k;
-        if (current_dimension != target_dimension) {
-            if (node->_left) {
-                std::cout << "Pushing left child with key: " << *(node->_left->_keyPart)
-                << " onto stack." << std::endl;
-                nodesToVisit.push(node->_left);
-            }
-            if (node->_right) {
-                std::cout << "Pushing right child with key: " << *(node->_right->_keyPart)
-                << " onto stack." << std::endl;
-                nodesToVisit.push(node->_right);
-            }
-        } else {
-            if (node->_right) {
-                std::cout << "Pushing right child with key: " << *(node->_right->_keyPart)
-                << " onto stack (target dimension)." << std::endl;
-                nodesToVisit.push(node->_right);
-            }
-        }
-    }
-
-    std::cout << "Max node in left subtree found with key: " << *(maxNode->_keyPart) << std::endl;
-    return maxNode;
-}
-
-
-template<typename KeyType, typename DataType>
-std::shared_ptr<KDTreeNode<KeyType, DataType>> GeneralKDTree<KeyType, DataType>::findMinInRightSubTree(
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> parent)
-{
-    if (!parent || !parent->_right) {
-        std::cout << "Right subtree is empty; no min node found." << std::endl;
-        return nullptr;
-    }
-
-    auto current = parent->_right;
-    auto minNode = current;
-    int target_dimension = parent->_level % this->k;
-
-    std::stack<std::shared_ptr<KDTreeNode<KeyType, DataType>>> nodesToVisit;
-    nodesToVisit.push(current);
-
-    std::cout << "Starting search for min in right subtree. Initial node key: "
-              << *(current->_keyPart) << ", dimension to compare: " << target_dimension
-              << std::endl;
-
-    while (!nodesToVisit.empty()) {
-        auto node = nodesToVisit.top();
-        nodesToVisit.pop();
-
-        std::cout << "Visiting node with key: " << *(node->_keyPart) << ", level: " << node->_level
-                  << ", current dimension: " << (node->_level % this->k) << std::endl;
-
-        if (node->_keyPart->compare(*(minNode->_keyPart), target_dimension) <= 0) {
-            std::cout << "Updating min node to key: " << *(node->_keyPart) << std::endl;
-            minNode = node;
-        }
-        int current_dimension = node->_level % this->k;
-        if (current_dimension != target_dimension) {
-            if (node->_left) {
-                nodesToVisit.push(node->_left);
-            }
-            if (node->_right) {
-                nodesToVisit.push(node->_right);
-            }
-        } else {
-            if (node->_left) {
-                nodesToVisit.push(node->_left);
-            }
-        }
-    }
-
-    std::cout << GREEN << "Min node in right subtree found with key: " << *(minNode->_keyPart)
-              << RESET << std::endl;
-    return minNode;
+    return this->k;
 }
 
 template<typename KeyType, typename DataType>
@@ -560,6 +384,52 @@ inline bool GeneralKDTree<KeyType, DataType>::isRightSon(
 }
 
 
+
+
+
+
+template<typename KeyType, typename DataType>
+inline void GeneralKDTree<KeyType, DataType>::inOrderTraversal(std::function<void (KDNodeType)> func, KDNodeType startNode)
+{
+    traversal->inOrderTraversal(func, startNode);
+}
+
+template<typename KeyType, typename DataType>
+inline void GeneralKDTree<KeyType, DataType>::levelOrderTraversal(std::function<void (KDNodeType)> func, KDNodeType startNode)
+{
+    traversal->levelOrderTraversal(func, startNode);
+}
+
+template<typename KeyType, typename DataType>
+inline void GeneralKDTree<KeyType, DataType>::reverseLevelOrderTraversal(std::function<void (KDNodeType)> func, std::shared_ptr<KDTreeNode<KeyType, DataType>> startNode)
+{
+    traversal->reverseLevelOrderTraversal(func, startNode);
+}
+
+template<typename KeyType, typename DataType>
+inline std::shared_ptr<KDTreeNode<KeyType, DataType> > GeneralKDTree<KeyType, DataType>::findMaxInLeftSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType> > parent, size_t k)
+{
+    traversal->findMaxInLeftSubTree(parent, k);
+}
+
+template<typename KeyType, typename DataType>
+inline std::shared_ptr<KDTreeNode<KeyType, DataType> > GeneralKDTree<KeyType, DataType>::findMinInRightSubTree(std::shared_ptr<KDTreeNode<KeyType, DataType> > parent, size_t k)
+{
+    traversal->findMinInRightSubTree(parent, k);
+}
+
+template<typename KeyType, typename DataType>
+inline std::shared_ptr<KDTreeNode<KeyType, DataType> > GeneralKDTree<KeyType, DataType>::findNodeWithData(std::shared_ptr<DataType> data, KDNodeType startNode, size_t k)
+{
+    traversal->findNodeWithData(data, startNode, k);
+}
+
+template<typename KeyType, typename DataType>
+inline std::shared_ptr<KDTreeNode<KeyType, DataType> > GeneralKDTree<KeyType, DataType>::findNodeInRightSubtreeWithDimension(KDNodeType node, std::shared_ptr<DataType> data, int target_dimension, size_t k)
+{
+    traversal->findNodeInRightSubtreeWithDimension(node, data, k);
+}
+
 template<typename KeyType, typename DataType>
 size_t GeneralKDTree<KeyType, DataType>::size() const
 {
@@ -576,78 +446,6 @@ std::shared_ptr<KDTreeNode<KeyType, DataType>> GeneralKDTree<KeyType, DataType>:
 }
 
 
-template<typename KeyType, typename DataType>
-void GeneralKDTree<KeyType, DataType>::inOrderTraversal(
-    std::function<void(std::shared_ptr<KDTreeNode<KeyType, DataType>>)> func,
-    std::shared_ptr<KDTreeNode<KeyType, DataType>> startNode)
-{
-    if (!startNode) {
-        startNode = root;
-    }
-
-    if (!startNode)
-        return;
-
-    inOrderTraversal(func, startNode->_left);
-    func(startNode);
-    inOrderTraversal(func, startNode->_right);
-}
 
 
-template<typename KeyType, typename DataType>
-void GeneralKDTree<KeyType, DataType>::levelOrderTraversal(
-    std::function<void(std::shared_ptr<KDTreeNode<KeyType, DataType>>)> func)
-{
-    if (!this->root)
-        return;
-
-    std::queue<std::shared_ptr<KDTreeNode<KeyType, DataType>>> nodeQueue;
-    nodeQueue.push(this->root);
-
-    while (!nodeQueue.empty()) {
-        auto current = nodeQueue.front();
-        nodeQueue.pop();
-
-        func(current);
-
-        if (current->_left) {
-            nodeQueue.push(current->_left);
-        }
-        if (current->_right) {
-            nodeQueue.push(current->_right);
-        }
-    }
-}
-
-template<typename KeyType, typename DataType>
-void GeneralKDTree<KeyType, DataType>::reverseLevelOrderTraversal(
-    std::function<void(std::shared_ptr<KDTreeNode<KeyType, DataType>>)> func)
-{
-    if (!this->root)
-        return;
-
-    std::queue<std::shared_ptr<KDTreeNode<KeyType, DataType>>> nodeQueue;
-    std::stack<std::shared_ptr<KDTreeNode<KeyType, DataType>>> nodeStack;
-    nodeQueue.push(this->root);
-
-    while (!nodeQueue.empty()) {
-        auto current = nodeQueue.front();
-        nodeQueue.pop();
-
-        nodeStack.push(current);
-
-        if (current->_right) {
-            nodeQueue.push(current->_right);
-        }
-        if (current->_left) {
-            nodeQueue.push(current->_left);
-        }
-    }
-
-    while (!nodeStack.empty()) {
-        auto current = nodeStack.top();
-        nodeStack.pop();
-        func(current);
-    }
-}
 

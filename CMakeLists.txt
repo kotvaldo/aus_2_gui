@@ -23,11 +23,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(AUS_2_GUI
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        FileLoader.h GPS.h IComparable.h KDTree.h  Nehnutelnost.h Parameters.h Parcela.h IPrototype.h TreeDatabase.h
-        ITreeDatabaseFactory.h
+        FileLoader.h GPS.h IComparable.h KDTree.h   Parameters.h  IPrototype.h TreeDatabase.h
+        Factory.h
         Util.h
         Parameters.cpp
         Model.h
+        Delegates.h
+        Node.h
+        Operation.h
 
 
 

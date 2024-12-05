@@ -15,15 +15,13 @@ private:
     char length;
 
 public:
-    // Konštruktor
+
     GPS(double x = 0, double y = 0, char width = 'N', char length = 'W')
         : x(x), y(y), width(width), length(length) {}
 
-    // Kopírovací konštruktor
     GPS(const GPS& other)
         : x(other.x), y(other.y), width(other.width), length(other.length) {}
 
-    // Porovnávanie
     int compare(const GPS& other, int cur_level) const override {
         if (cur_level % 4 == 0) {
             return (this->width < other.width) ? -1 : (this->width > other.width ? 1 : 0);

@@ -1,8 +1,8 @@
 #pragma once
+#include "GPS.h"
 #include "IPrototype.h"
-#include "Nehnutelnost.h"
+#include "Model.h"
 #include "Parameters.h"
-#include "Parcela.h"
 #include <memory>
 
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IPrototype.h"
-#include "ITreeDatabaseFactory.h"
+#include "Factory.h"
 
 #include <iostream>
 #include <memory>
@@ -15,7 +15,7 @@ class Util {
 private:
     static std::random_device rd;
     static std::mt19937 rng;
-    static <vector<int>> idGenerators;
+    static std::vector<int> idGenerators;
 public:
     template <typename T>
     static T randomNumber(T min, T max) {

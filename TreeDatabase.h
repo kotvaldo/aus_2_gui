@@ -1,7 +1,6 @@
 #pragma once
 #include "FileLoader.h"
 #include "KDTree.h"
-#include "Parameters.h"
 
 template <typename Key, typename Data, typename KeyFactory, typename DataFactory, typename KeyParams, typename DataParams>
 class TreeDatabase {
@@ -14,6 +13,7 @@ private:
     std::string parcelyFile;
     KeyFactory keyFactory;
     DataFactory dataFactory;
+
 
 public:
     TreeDatabase(int k , string dataFile);
@@ -79,8 +79,21 @@ public:
         return elements;
     }
 
-    bool destroy() {
+    bool destroy(int id, const KeyParams& keyParams) {
+        auto key_ptr = keyFactory.createInstance(keyParams);
 
+        auto duplicities = tree.find(key_ptr);
+
+        auto it = std::find_if(duplicities.begin(), duplicities.end(),
+                               [&](const std::shared_ptr<Data>& item) {
+                                   return item->id == id;
+                               });
+
+        if (it == duplicities.end()) {
+            return false;
+        }
+        tree.removeNode(*it);
+        return true;
     }
 
 
@@ -135,41 +148,6 @@ public:
         return true;
     }
 
-
-    bool deleteParcelaRecord(int id, const GPSParameters& coords) {
-        GPS gps(coords.x, coords.y, coords.width, coords.length);
-
-        vector<Parcela*> parcela_dup = tree_parcela.find(&gps);
-        Parcela* parcela = nullptr;
-        for (Parcela* p : parcela_dup) {
-            if (p->getUid() == id) {
-                parcela = p;
-                break;
-            }
-        }
-
-        if (parcela == nullptr) {
-            std::cout << "Error: Parcela with ID " << id << " not found." << std::endl;
-            return false;
-        }
-
-        std::cout << "Deleting Parcela with ID " << id << std::endl;
-
-        parcela->clearNehnutelnosti();
-        tree_parcela.removeNode(parcela);
-
-        vector<Area*> areasDup = tree_area.find(&gps);
-        for (Area* a : areasDup) {
-            if (a->getParcela() && a->getParcela()->equals(*parcela)) {
-                tree_area.removeNode(a);
-                delete a;
-                break;
-            }
-        }
-
-        delete parcela;
-        return true;
-    }
 
     void clearAllData() {
         tree.clear();
