@@ -5,54 +5,30 @@
 #include "KDTree.h"
 #include "Nehnutelnost.h"
 #include <algorithm>
-#include <iostream>
-#include <vector>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
-class FileLoader {
+
+
+template <typename KeyType, typename DataType>
+class FileLoader
+{
 private:
-
-    std::vector<int>&idParcely;
-    std::vector<int>&idNehnutelnost;
-    std::vector<int>&idAreas;
-
+    GeneralKDTree<KeyType, DataType>& tree;
+    vector<int>& idManager;
+    string filename;
 public:
-    FileLoader(std::vector<int>& idNehnutelnost, std::vector<int>& idAreas, vector<int>& idParcely) : idAreas(idAreas),idNehnutelnost(idNehnutelnost), idParcely(idParcely) {}
+    FileLoader() {}
 
-    ~FileLoader() {
-    }
-
+    ~FileLoader() {}
 
 
-    int getBiggerUIDParcely() {
-        if (idParcely.empty()) {
-            idParcely.push_back(1);
-        } else {
-            idParcely.push_back(idParcely.size() + 1);
-        }
-        return idParcely.size();
-    }
 
-    int getBiggerIDNehnutelnosti() {
-        if (idNehnutelnost.empty()) {
-            idNehnutelnost.push_back(1);
-        } else {
-            idNehnutelnost.push_back(idNehnutelnost.size() + 1);
-        }
-        return idNehnutelnost.size();
-    }
-    int getBiggerIDArea() {
-        if (idAreas.empty()) {
-            idAreas.push_back(1);
-        } else {
-            idAreas.push_back(idNehnutelnost.size() + 1);
-        }
-        return idAreas.size();
-    }
-
-    bool loadNehnutelnosti(const std::string& filename, GeneralKDTree<GPS, Parcela>& tree_parcely,  GeneralKDTree<GPS, Nehnutelnost>& tree_nehnutelnost, GeneralKDTree<GPS, Area>& tree_area) {
+    bool loadData()
+    {
         std::ifstream infile(filename);
         if (!infile) {
             std::cerr << "Unable to open file " << filename << std::endl;
@@ -65,13 +41,10 @@ public:
             std::istringstream iss(line);
             std::string uidStr, gpsXStr, gpsYStr, widthStr, lengthStr, supisneCisloStr, description;
 
-            if (!std::getline(iss, uidStr, ';') ||
-                !std::getline(iss, gpsXStr, ';') ||
-                !std::getline(iss, gpsYStr, ';') ||
-                !std::getline(iss, widthStr, ';') ||
-                !std::getline(iss, lengthStr, ';') ||
-                !std::getline(iss, supisneCisloStr, ';') ||
-                !std::getline(iss, description)) {
+            if (!std::getline(iss, uidStr, ';') || !std::getline(iss, gpsXStr, ';')
+                || !std::getline(iss, gpsYStr, ';') || !std::getline(iss, widthStr, ';')
+                || !std::getline(iss, lengthStr, ';') || !std::getline(iss, supisneCisloStr, ';')
+                || !std::getline(iss, description)) {
                 std::cerr << "Error reading nehnutelnost from file" << std::endl;
                 infile.close();
                 return false;
@@ -85,30 +58,31 @@ public:
             int supisneCislo = std::stoi(FileLoader::trim(supisneCisloStr));
             std::string popis = FileLoader::trim(description);
 
-            GPS* gps = new GPS(gpsX, gpsY, width, length);
-            Nehnutelnost* nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
+            GPS *gps = new GPS(gpsX, gpsY, width, length);
+            Nehnutelnost *nehnutelnost = new Nehnutelnost(uid, gps, supisneCislo, popis);
             tree_nehnutelnost.insert(nehnutelnost, gps);
-            vector<Parcela*> parcelyPrekryv = tree_parcely.find(gps);
-            for (Parcela* p : parcelyPrekryv) {
-                if (p->getGps()->equalsByKeys(*gps)) {  // Predpokladáme, že `isWithin` určuje, či sa GPS nachádza v rámci parcely
+            vector<Parcela *> parcelyPrekryv = tree_parcely.find(gps);
+            for (Parcela *p : parcelyPrekryv) {
+                if (p->getGps()->equalsByKeys(
+                        *gps)) { // Predpokladáme, že `isWithin` určuje, či sa GPS nachádza v rámci parcely
                     nehnutelnost->addParcela(p);
                     p->addNehnutelnost(nehnutelnost);
                 }
             }
 
-            GPS* gps_copy = new GPS(*gps);
-            Area* a = new Area(getBiggerIDArea(), gps_copy, nehnutelnost, nullptr);
+            GPS *gps_copy = new GPS(*gps);
+            Area *a = new Area(getBiggerIDArea(), gps_copy, nehnutelnost, nullptr);
             tree_area.insert(a, gps_copy);
-
-
         }
 
         infile.close();
         return true;
     }
 
-
-    bool loadParcely(const std::string& filename,  GeneralKDTree<GPS, Parcela>& tree_parcely, GeneralKDTree<GPS, Area>& tree_area) {
+    bool loadParcely(const std::string &filename,
+                     GeneralKDTree<GPS, Parcela> &tree_parcely,
+                     GeneralKDTree<GPS, Area> &tree_area)
+    {
         std::ifstream infile(filename);
         if (!infile) {
             std::cerr << "Unable to open file " << filename << std::endl;
@@ -121,13 +95,10 @@ public:
             std::istringstream iss(line);
             std::string uidStr, gpsXStr, gpsYStr, widthStr, lengthStr, cisloParcelyStr, description;
 
-            if (!std::getline(iss, uidStr, ';') ||
-                !std::getline(iss, gpsXStr, ';') ||
-                !std::getline(iss, gpsYStr, ';') ||
-                !std::getline(iss, widthStr, ';') ||
-                !std::getline(iss, lengthStr, ';') ||
-                !std::getline(iss, cisloParcelyStr, ';') ||
-                !std::getline(iss, description)) {
+            if (!std::getline(iss, uidStr, ';') || !std::getline(iss, gpsXStr, ';')
+                || !std::getline(iss, gpsYStr, ';') || !std::getline(iss, widthStr, ';')
+                || !std::getline(iss, lengthStr, ';') || !std::getline(iss, cisloParcelyStr, ';')
+                || !std::getline(iss, description)) {
                 std::cerr << "Error reading parcela from file" << std::endl;
                 infile.close();
                 return false;
@@ -141,15 +112,13 @@ public:
             int cisloParcely = std::stoi(FileLoader::trim(cisloParcelyStr));
             std::string popis = FileLoader::trim(description);
 
-            GPS* gps = new GPS(gpsX, gpsY, width, length);
-            Parcela* parcela = new Parcela(uid, gps, cisloParcely, popis);
+            GPS *gps = new GPS(gpsX, gpsY, width, length);
+            Parcela *parcela = new Parcela(uid, gps, cisloParcely, popis);
             tree_parcely.insert(parcela, gps);
 
-            GPS* gps_copy = new GPS(*gps);
-            Area* a = new Area(getBiggerIDArea(), gps_copy, nullptr, parcela);
+            GPS *gps_copy = new GPS(*gps);
+            Area *a = new Area(getBiggerIDArea(), gps_copy, nullptr, parcela);
             tree_area.insert(a, gps_copy);
-
-
         }
 
         infile.close();
@@ -157,13 +126,9 @@ public:
     }
 
 
-    static inline std::string trim(std::string &s) {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
-        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
-        return s;
+
+    void setIdManager(const vector<int> &newIdManager) {
+        idManager = newIdManager;
     }
-
 };
-
-
 

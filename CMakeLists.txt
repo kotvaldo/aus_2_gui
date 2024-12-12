@@ -26,13 +26,22 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         FileLoader.h KDTree.h
         TreeDatabase.h
         Parameters.h
-        Parcela.h
+
         IComparable.h
         GPS.h
-        Area.h
-        Nehnutelnost.h
-        Parcela.cpp
-        Nehnutelnost.cpp
+
+
+
+
+        IFactory.h
+        IPrototype.h
+        Models.h
+        Iterator.h
+        Iterator.h
+        Node.h
+        Util.h
+        Generator.h
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET AUS_2_GUI APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

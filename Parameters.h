@@ -1,37 +1,36 @@
-#ifndef PARAMETERS_H
-#define PARAMETERS_H
+#pragma once
 
 #include <string>
+using namespace std;
 
-struct GPSParameters {
+//CRATE DP
+
+
+class Parameters {
+public:
+    virtual ~Parameters() = default;
+    virtual void randomize();
+};
+
+struct GPSParameters : public Parameters {
     double x;
     double y;
     char width;
     char length;
 
-};
+    GPSParameters(double x = 0, double y = 0, char width = 'N', char length = 'W')
+        : x(x), y(y), width(width), length(length) {}
 
-struct BoundingBox {
-    GPSParameters point1;
-    GPSParameters point2;
 
-    BoundingBox(GPSParameters point1, GPSParameters point2)
-        : point1(point1), point2(point2) {}
 };
 
 
-struct ParcelaParameters {
-    int cisloParcely;
+struct ObjParameters : public Parameters {
+    int id = -1;
+    int number;
     std::string description;
-    int uid = -1;
+
+    ObjParameters(int number = 0, const std::string& description = "")
+        : number(number), description(description) {}
+
 };
-
-struct NehnutelnostParameters {
-    int supisneCislo;
-    std::string description;
-    int uid = -1;
-};
-
-
-
-#endif // PARAMETERS_H

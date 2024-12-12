@@ -1,8 +1,8 @@
-#include "mainwindow.h"
 #include <QApplication>
+#include "mainwindow.h"
 #define _CRTDBG_MAP_ALLOC
-#include <cstdlib>
 #include <crtdbg.h>
+#include <cstdlib>
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +14,5 @@ int main(int argc, char *argv[])
     return a.exec();
 
     return 0;
-
 }
 ///

@@ -1,17 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
 #include "TreeDatabase.h"
 
 #include <QListWidget>
 #include <QMainWindow>
 #include <QMessageBox>
-enum class ProgramType {
-    Nehnutelnosti,
-    Parcely,
-    Area
-};
+enum class ProgramType { Nehnutelnosti, Parcely, Area };
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -26,17 +21,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void deleteSelectedItem(QListWidget* listWidget);
-    void RefreshListByNehnutelnosti(QListWidget* listWidget, const std::vector<Nehnutelnost*>& nehnutelnosti);
-    void RefreshListByArea(QListWidget* listWidget, const std::vector<Area*>& areas);
-    void RefreshListByParcel(QListWidget* listWidget, const std::vector<Parcela*>& parcely);
+    void deleteSelectedItem(QListWidget *listWidget);
+    void RefreshListByNehnutelnosti(QListWidget *listWidget,
+                                    const std::vector<Nehnutelnost *> &nehnutelnosti);
+    void RefreshListByArea(QListWidget *listWidget, const std::vector<Area *> &areas);
+    void RefreshListByParcel(QListWidget *listWidget, const std::vector<Parcela *> &parcely);
 
 private slots:
-
-
-
-
-
 
     void on_clear_btn_clicked();
 
