@@ -2,6 +2,7 @@
 #include "Iterator.h"
 #include <iostream>
 #include <list>
+#include <queue>
 #include <stack>
 #include <vector>
 
@@ -18,14 +19,6 @@ class GeneralKDTree
 {
     using KDNodeType = KDTreeNode<KeyType, DataType>;
 
-
-public:
-
-    BaseIterator<KeyType, DataType>* beginInOrder() { return new InOrderIterator<KeyType, DataType>(root); }
-    BaseIterator<KeyType, DataType>* endInOrder() { return nullptr; }
-
-    BaseIterator<KeyType, DataType>* beginLevelOrder() { return new LevelOrderIterator<KeyType, DataType>(root); }
-    BaseIterator<KeyType, DataType>* endLevelOrder() { return nullptr; }
 
 public:
     GeneralKDTree(size_t dim_count);
@@ -55,7 +48,95 @@ private:
                                                                        int target_dimension);
     void reinsertNodesWithSameKey(KDNodeType *node);
     void clearProcessedNodes();
+
+
+public:
+    class InOrderIterator {
+    public:
+        InOrderIterator(KDNodeType* root) { initialize(root); }
+
+        void operator++() {
+            if (!nodeStack.empty()) {
+                current = nodeStack.top();
+                nodeStack.pop();
+
+                KDNodeType* temp = current->_right;
+                while (temp != nullptr) {
+                    nodeStack.push(temp);
+                    temp = temp->_left;
+                }
+            } else {
+                current = nullptr;
+            }
+        }
+
+        DataType* operator*() const {
+            return current ? current->_data : nullptr;
+        }
+
+        bool operator!=(const InOrderIterator& other) const {
+            return current != other.current;
+        }
+
+    private:
+        KDNodeType* current = nullptr;
+        std::stack<KDNodeType*> nodeStack;
+
+        void initialize(KDNodeType* root) {
+            while (root != nullptr) {
+                nodeStack.push(root);
+                root = root->_left;
+            }
+            operator++();
+        }
+    };
+
+    class LevelOrderIterator {
+    public:
+        LevelOrderIterator(KDNodeType* root) {
+            if (root) {
+                nodeQueue.push(root);
+                operator++();
+            }
+        }
+
+        void operator++() {
+            if (!nodeQueue.empty()) {
+                current = nodeQueue.front();
+                nodeQueue.pop();
+
+                if (current->_left) nodeQueue.push(current->_left);
+                if (current->_right) nodeQueue.push(current->_right);
+            } else {
+                current = nullptr;
+            }
+        }
+
+        DataType* operator*() const {
+            return current ? current->_data : nullptr;
+        }
+
+        bool operator!=(const LevelOrderIterator& other) const {
+            return current != other.current;
+        }
+
+    private:
+        KDNodeType* current = nullptr;
+        std::queue<KDNodeType*> nodeQueue;
+    };
+
+    InOrderIterator beginInOrder() { return InOrderIterator(root); }
+    InOrderIterator endInOrder() { return InOrderIterator(nullptr); }
+
+    LevelOrderIterator beginLevelOrder() { return LevelOrderIterator(root); }
+    LevelOrderIterator endLevelOrder() { return LevelOrderIterator(nullptr); }
+
+
+
 };
+
+
+
 
 template<typename KeyType, typename DataType>
 inline GeneralKDTree<KeyType, DataType>::GeneralKDTree(size_t dim_count)

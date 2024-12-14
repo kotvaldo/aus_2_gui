@@ -3,8 +3,14 @@
 #include "IComparable.h"
 
 using namespace std;
+class Model {
+public:
+    virtual ~Model() = default;
 
-class Nehnutelnost : public IComparable<Nehnutelnost>, public IPrototype
+    virtual IPrototype* getKey() const = 0;
+};
+
+class Nehnutelnost : public IComparable<Nehnutelnost>, public IPrototype, public Model
 {
 private:
     int uid;
@@ -60,13 +66,10 @@ public:
         return os;
     }
 
-    // Getters
     int getUid() const { return uid; }
-    GPS *getGps() const { return gps; }
     int getSupisneCislo() const { return supisneCislo; }
     const std::string &getPopis() const { return popis; }
 
-    // Setters
     void setUid(int newUid) { uid = newUid; }
     void setGps(GPS *newGps) { gps = newGps; }
     void setSupisneCislo(int newSupisneCislo) { supisneCislo = newSupisneCislo; }
@@ -77,11 +80,15 @@ public:
     IPrototype *clone() override {
         return new Nehnutelnost(*this);
     };
+
+    IPrototype *getKey() const override {
+        return this->gps;
+    }
 };
 
 \
 
-class Parcela : public IComparable<Parcela>, public IPrototype
+class Parcela : public IComparable<Parcela>, public IPrototype, public Model
 {
 private:
     int uid;
@@ -137,7 +144,6 @@ public:
     }
 
     int getUid() const { return uid; }
-    GPS *getGps() const { return gps; }
     int getCisloParcely() const { return cisloParcely; }
     const std::string &getPopis() const { return popis; }
 
@@ -150,6 +156,10 @@ public:
     void clearNehnutelnosti();
 
     IPrototype *clone() override {
-        return new Parcela(*this);
+        return this->gps;
+    }
+
+    IPrototype *getKey() const override {
+        return this->gps;
     }
 };
